@@ -42,9 +42,7 @@ import {
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { tmpdir } from "os";
-
-const fetch = require('node-fetch');
-const { execSync } = require('child_process');
+import { spawnSync } from "child_process";
 
 /**
  * These options are related to creating stateful resources. Some of these might conflict with existing resources
@@ -290,13 +288,13 @@ export class HtsgetLambdaConstruct extends Construct {
 
       if (settings.copyTestData) {
         // Copy data from upstream htsget-data repo
-        const repoUrl = 'https://github.com/umccr/htsget-rs';
-        const localDataPath = path.join(tmpdir(), "htsget-rs-data");
+//        const repoUrl = "https://github.com/umccr/htsget-rs";
+        const localDataPath = path.join(tmpdir(), "htsget-rs");
 
-        let latestCommit = execSync(`git ls-remote ${repoUrl} HEAD`).stdout.toString().split(/(\s+)/)[0];
+//        let latestCommit = this.exec('git', ['ls-remote', repoUrl, 'HEAD']).stdout.toString().split(/(\s+)/)[0];
 
         // Clone the repository and copy the data directory
-        execSync(`git clone --depth 1 ${repoUrl} ${localDataPath}`);
+//        this.exec('git', ['clone', '--depth', '1', repoUrl, localDataPath]);
         new BucketDeployment(this, "DeployFiles", {
           sources: [Source.asset(localDataPath)],
           destinationBucket: bucket,
@@ -314,7 +312,7 @@ export class HtsgetLambdaConstruct extends Construct {
     });
 
     if (settings.copyTestData && settings.copyExampleKeys) {
-      const dataDir = path.join(tmpdir(), "htsget-rs-data", "data", "c4gh", "keys");
+      const dataDir = path.join(tmpdir(), "htsget-rs", "data", "c4gh", "keys");
       const private_key = new Secret(this, "SecretPrivateKey-C4GH", {
         secretName: "htsget-rs/c4gh-private-key-c4gh", // pragma: allowlist secret
         secretStringValue: SecretValue.unsafePlainText(
@@ -351,7 +349,8 @@ export class HtsgetLambdaConstruct extends Construct {
       .concat(["s3-storage"]);
 
     let htsgetLambda = new RustFunction(this, id + "Function", {
-      manifestPath: "https://github.com/umccr/htsget-rs",
+      gitRemote: "https://github.com/umccr/htsget-rs",
+      gitForceClone: true,
       binaryName: "htsget-lambda",
       bundling: {
         environment: {
@@ -539,6 +538,25 @@ export class HtsgetLambdaConstruct extends Construct {
     };
   }
 
+  /**
+  * Spawn sync with error handling
+  */
+  exec(cmd: string, args: string[]) {
+    const proc = spawnSync(cmd, args);
+
+    if (proc.error) {
+      throw proc.error;
+    }
+
+    if (proc.status !== 0) {
+      if (proc.stdout || proc.stderr) {
+        throw new Error(`[Status ${proc.status}] stdout: ${proc.stdout?.toString().trim()}\n\n\nstderr: ${proc.stderr?.toString().trim()}`);
+      }
+      throw new Error(`${cmd} exited with status ${proc.status}`);
+    }
+
+    return proc;
+  }
   // fetchExampleDataAndKeys() {
   //
   // }
