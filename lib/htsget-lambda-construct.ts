@@ -41,6 +41,10 @@ import {
 } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { tmpdir } from "os";
+
+const fetch = require('node-fetch');
+const { execSync } = require('child_process');
 
 /**
  * These options are related to creating stateful resources. Some of these might conflict with existing resources
@@ -286,9 +290,15 @@ export class HtsgetLambdaConstruct extends Construct {
 
       if (settings.copyTestData) {
         // Copy data from upstream htsget-data repo
-        const dataDir = path.join(__dirname, "..", "..", "data");
+        const repoUrl = 'https://github.com/umccr/htsget-rs';
+        const localDataPath = path.join(tmpdir(), "htsget-rs-data");
+
+        let latestCommit = execSync(`git ls-remote ${repoUrl} HEAD`).stdout.toString().split(/(\s+)/)[0];
+
+        // Clone the repository and copy the data directory
+        execSync(`git clone --depth 1 ${repoUrl} ${localDataPath}`);
         new BucketDeployment(this, "DeployFiles", {
-          sources: [Source.asset(dataDir)],
+          sources: [Source.asset(localDataPath)],
           destinationBucket: bucket,
         });
       }
@@ -303,8 +313,8 @@ export class HtsgetLambdaConstruct extends Construct {
       resources: settings.secretArns ?? [],
     });
 
-    if (settings.copyExampleKeys) {
-      const dataDir = path.join(__dirname, "..", "..", "data", "c4gh", "keys");
+    if (settings.copyTestData && settings.copyExampleKeys) {
+      const dataDir = path.join(tmpdir(), "htsget-rs-data", "data", "c4gh", "keys");
       const private_key = new Secret(this, "SecretPrivateKey-C4GH", {
         secretName: "htsget-rs/c4gh-private-key-c4gh", // pragma: allowlist secret
         secretStringValue: SecretValue.unsafePlainText(
@@ -528,4 +538,8 @@ export class HtsgetLambdaConstruct extends Construct {
           : undefined,
     };
   }
+
+  // fetchExampleDataAndKeys() {
+  //
+  // }
 }
