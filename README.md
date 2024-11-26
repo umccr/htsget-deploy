@@ -11,9 +11,39 @@ Here's how to deploy htsget-rs's htsget-lambda to AWS:
 
 A couple of `curl` commands should be able to determine that:
 
+```sh
+curl "https://htsget-demo.ga4gh-demo.org/reads/service-info"
 ```
 
+Should return a response similar to the following one (some fields elided for brevity):
+
+```json
+{
+  "name": "umccr-htsget-rs",
+  "version": "0.1",
+  "organization": {
+    "name": "UMCCR",
+    "url": "https://umccr.org/"
+  },
+  "htsget": {
+    "datatype": "reads",
+    "formats": [
+      "BAM",
+      "CRAM"
+    ]
+  },
+  "contactUrl": "https://umccr.org/",
+  "documentationUrl": "https://github.com/umccr/htsget-rs",
+}
 ```
+
+Likewise, if you'd like to test the retrieval of Crypt4GH encrypted material, i.e:
+
+```
+curl https://htsget-c4gh.dev.umccr.org/reads/htsgetteststack-htsgetrsbucket99e7bdef-48dadgrz8laj/c4gh/htsnexus_test_NA12878
+```
+
+Please note that the example above assumes a publicly accessible endpoint. If you have an authz'd deployment, please use `-H "Authorization: $JWT_TOKEN"` flags added to your `curl` command.
 
 # Deployment of htsget-lambda
 
