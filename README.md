@@ -1,3 +1,20 @@
+# Quickstart
+
+Here's how to deploy htsget-rs's htsget-lambda to AWS:
+
+1. Authenticate to your AWS account (preferably using SSO).
+2. Modify the `bin/settings.ts`, according to your preferences.
+3. Modify `config/<YOUR_TOML_FILE>.toml` pointed by `bin/settings.ts` accordingly.
+4. Run `cdk deploy`.
+
+## Does it work?
+
+A couple of `curl` commands should be able to determine that:
+
+```
+
+```
+
 # Deployment of htsget-lambda
 
 The [htsget-lambda] crate is a cloud-based implementation of [htsget-rs]. It uses AWS Lambda as the ticket server, and AWS S3 as the data block server.
