@@ -192,68 +192,6 @@ export type Config = {
   maxAge?: Duration;
 };
 
-// export class HtsgetStatelessConstruct extends Construct {
-//   constructor(
-//     scope: Construct,
-//     id: string,
-//     settings: HtsgetStatelessSettings
-//   ) {
-//     super(scope, id);
-
-//     const config = this.getConfig(settings.config);
-
-//     const lambdaRole = new Role(this, id + "Role", {
-//       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-//       description: "Lambda execution role for " + id,
-//     });
-
-//     const s3BucketPolicy = new PolicyStatement({
-//       actions: ["s3:List*", "s3:Get*"],
-//       resources: settings.s3BucketResources ?? [],
-//     });
-
-//     const secretPolicy = new PolicyStatement({
-//       actions: ["secretsmanager:GetSecretValue"],
-//       resources: settings.secretArns ?? [],
-//     });
-//   }
-
-//   /**
-//    * Get the environment from config.toml
-//    */
-//   getConfig(config: string): Config {
-//     const configToml = TOML.parse(readFileSync(config).toString());
-
-//     return {
-//       htsgetConfig: HtsgetLambdaConstruct.configToEnv(configToml),
-//       allowCredentials:
-//         configToml.ticket_server_cors_allow_credentials as boolean,
-//       allowHeaders: HtsgetLambdaConstruct.convertCors(
-//         configToml,
-//         "ticket_server_cors_allow_headers",
-//       ),
-//       allowMethods: HtsgetLambdaConstruct.corsAllowMethodToHttpMethod(
-//         HtsgetLambdaConstruct.convertCors(
-//           configToml,
-//           "ticket_server_cors_allow_methods",
-//         ),
-//       ),
-//       allowOrigins: HtsgetLambdaConstruct.convertCors(
-//         configToml,
-//         "ticket_server_cors_allow_origins",
-//       ),
-//       exposeHeaders: HtsgetLambdaConstruct.convertCors(
-//         configToml,
-//         "ticket_server_cors_expose_headers",
-//       ),
-//       maxAge:
-//         configToml.ticket_server_cors_max_age !== undefined
-//           ? Duration.seconds(configToml.ticket_server_cors_max_age as number)
-//           : undefined,
-//     };
-//   }
-// }
-
 /**
  * Construct used to deploy htsget-lambda.
  */
@@ -288,13 +226,8 @@ export class HtsgetLambdaConstruct extends Construct {
 
       if (settings.copyTestData) {
         // Copy data from upstream htsget-data repo
-//        const repoUrl = "https://github.com/umccr/htsget-rs";
         const localDataPath = path.join(tmpdir(), "htsget-rs");
 
-//        let latestCommit = this.exec('git', ['ls-remote', repoUrl, 'HEAD']).stdout.toString().split(/(\s+)/)[0];
-
-        // Clone the repository and copy the data directory
-//        this.exec('git', ['clone', '--depth', '1', repoUrl, localDataPath]);
         new BucketDeployment(this, "DeployFiles", {
           sources: [Source.asset(localDataPath)],
           destinationBucket: bucket,
@@ -314,14 +247,14 @@ export class HtsgetLambdaConstruct extends Construct {
     if (settings.copyTestData && settings.copyExampleKeys) {
       const dataDir = path.join(tmpdir(), "htsget-rs", "data", "c4gh", "keys");
       const private_key = new Secret(this, "SecretPrivateKey-C4GH", {
-        secretName: "htsget-rs/c4gh-private-key-c4gh", // pragma: allowlist secret
+        secretName: "htsget-rs/privkey-crypt4gh", // pragma: allowlist secret
         secretStringValue: SecretValue.unsafePlainText(
           readFileSync(path.join(dataDir, "bob.sec")).toString(),
         ),
         removalPolicy: RemovalPolicy.RETAIN,
       });
       const public_key = new Secret(this, "SecretPublicKey-C4GH", {
-        secretName: "htsget-rs/c4gh-recipient-public-key-c4gh", // pragma: allowlist secret
+        secretName: "htsget-rs/pubkey-crypt4gh", // pragma: allowlist secret
         secretStringValue: SecretValue.unsafePlainText(
           readFileSync(path.join(dataDir, "alice.pub")).toString(),
         ),

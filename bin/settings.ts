@@ -6,8 +6,8 @@ import { HtsgetStatefulSettings } from "../lib/htsget-lambda-construct";
  */
 export const SETTINGS: HtsgetStatelessSettings & HtsgetStatefulSettings = {
   config: "config/example_deploy.toml",
-  domain: "dev.umccr.org",
-  subDomain: "htsget-c4gh",
+  domain: "demo.umccr.org",
+  subDomain: "htsget",
   s3BucketResources: [],
   lookupHostedZone: true,
   createS3Bucket: true,
@@ -17,11 +17,10 @@ export const SETTINGS: HtsgetStatelessSettings & HtsgetStatefulSettings = {
   // bucketName: "bucket",
   jwtAuthorizer: {
     // Set this to false if you want a private instance.
-    public: false,
+    public: true,
     cogUserPoolId: "", // i.e: ap-southeast-2_iWOHnsurL
     jwtAudience: [""], // Should match your cognito client id, i.e: 3jgmc7kqaaf8mqbv2sgmujslrp
   },
   // Enable additional features for compiling htsget-rs. `s3-storage` is always enabled.
   features: ["experimental"], // i.e: Enables Crypt4Gh+htsget functionality
-  //copyExampleKeys: true,
 };
