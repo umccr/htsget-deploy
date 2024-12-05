@@ -75,7 +75,7 @@ npm install
 
 ### Deploy to AWS
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > The default deployment is designed to work out of the box. A bucket with a CDK-generated name is created with test
 > data from the [`data`][data] directory. All deployment settings can be tweaked using the [`settings.ts`][htsget-settings].
 > The only option that must be specified in the `domain`, which determines the domain name to serve htsget-rs at.
@@ -92,7 +92,7 @@ Then to deploy the stack, run:
 npx cdk deploy
 ```
 
-> [!WARNING]  
+> [!WARNING]
 > By default this deployment will create a public instance of htsget-rs. Anyone will be able to query the server
 > without authorizing unless you modify the `HtsgetJwtAuthSettings` settings.
 

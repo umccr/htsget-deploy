@@ -1,0 +1,22 @@
+name: release
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+      - run: pnpm install
+      - run: pnpm version ${{ github.ref_name }}
+      - run: pnpm run build
+      - run: pnpm publish --access public
+        env:
+          NPM_TOKEN: ${{ secrets.HTSGET_RS_DEPLOY_PUBLISH_TOKEN }}

@@ -28,7 +28,7 @@ services:
       /opt/bitnami/scripts/minio/run.sh &
       until $(curl -s -f http://localhost:9000/minio/health/live); do
           sleep 1
-      done && 
+      done &&
       mc alias set minio http://minio:9000 user password;
       mc mirror /tmp/data minio/data;
       tail -f /dev/null

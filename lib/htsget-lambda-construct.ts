@@ -66,7 +66,7 @@ export type HtsgetStatefulSettings = {
    */
   lookupHostedZone?: boolean;
 
-    /**
+  /**
    * Whether to create a test bucket. Defaults to true. Buckets are created with
    * [`RemovalPolicy.RETAIN`](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.RemovalPolicy.html).
    * The correct access permissions are automatically added.
@@ -79,7 +79,7 @@ export type HtsgetStatefulSettings = {
    */
   bucketName?: string;
 
-      /**
+  /**
    * Whether to copy test data into the bucket. Defaults to true. This copies the example data under the `data`
    * directory to those buckets. This option only has an affect is `createS3Buckets` is true.
    */
@@ -472,8 +472,8 @@ export class HtsgetLambdaConstruct extends Construct {
   }
 
   /**
-  * Spawn sync with error handling
-  */
+   * Spawn sync with error handling
+   */
   exec(cmd: string, args: string[]) {
     const proc = spawnSync(cmd, args);
 
@@ -483,7 +483,9 @@ export class HtsgetLambdaConstruct extends Construct {
 
     if (proc.status !== 0) {
       if (proc.stdout || proc.stderr) {
-        throw new Error(`[Status ${proc.status}] stdout: ${proc.stdout?.toString().trim()}\n\n\nstderr: ${proc.stderr?.toString().trim()}`);
+        throw new Error(
+          `[Status ${proc.status}] stdout: ${proc.stdout?.toString().trim()}\n\n\nstderr: ${proc.stderr?.toString().trim()}`,
+        );
       }
       throw new Error(`${cmd} exited with status ${proc.status}`);
     }
