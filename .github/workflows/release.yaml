@@ -15,7 +15,6 @@ jobs:
           node-version: 22
           cache: "pnpm"
       - run: pnpm install
-      - run: pnpm version ${{ github.ref_name }}
       - run: pnpm run build
       - run: pnpm publish --access public
         working-directory: dist
