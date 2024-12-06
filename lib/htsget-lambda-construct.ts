@@ -12,6 +12,7 @@ import { Construct } from "constructs";
 
 import { UserPool } from "aws-cdk-lib/aws-cognito";
 import {
+  IRole,
   ManagedPolicy,
   PolicyStatement,
   Role,
@@ -22,7 +23,12 @@ import {
   Certificate,
   CertificateValidation,
 } from "aws-cdk-lib/aws-certificatemanager";
-import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import {
+  ARecord,
+  CfnHostedZone,
+  HostedZone,
+  RecordTarget,
+} from "aws-cdk-lib/aws-route53";
 import { ApiGatewayv2DomainProperties } from "aws-cdk-lib/aws-route53-targets";
 import { RustFunction } from "cargo-lambda-cdk";
 import path from "path";
@@ -43,6 +49,8 @@ import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { tmpdir } from "os";
 import { spawnSync } from "child_process";
+import VPCProperty = CfnHostedZone.VPCProperty;
+import { IVpc } from "aws-cdk-lib/aws-ec2";
 
 /**
  * These options are related to creating stateful resources. Some of these might conflict with existing resources
@@ -52,7 +60,7 @@ export type HtsgetStatefulSettings = {
   /**
    * The domain name for the htsget server.
    */
-  domain: string;
+  domain?: string;
 
   /**
    * The domain name prefix to use for the htsget-rs server. Defaults to `"htsget"`.
@@ -93,6 +101,23 @@ export type HtsgetStatefulSettings = {
    * with [`RemovalPolicy.RETAIN`](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.RemovalPolicy.html).
    */
   copyExampleKeys?: boolean;
+
+  /**
+   * Use a VPC for the Lambda function.
+   */
+  vpc?: IVpc;
+
+  /**
+   * Manually specify an `HttpApi`. This will not create a `HostedZone`, any Route53 records, certificates,
+   * or authorizers, and will instead rely on the existing `HttpApi`.
+   */
+  httpApi?: HttpApi;
+
+  /**
+   * Use the provided role instead of creating one. This will ignore any configuration related to permissions for
+   * buckets and secrets, and rely on the existing role.
+   */
+  role?: Role;
 };
 
 /**
@@ -111,12 +136,12 @@ export type HtsgetStatelessSettings = {
    * option. This option must be specified to allow `htsget-rs` to access data in buckets that are not created in
    * this construct.
    */
-  s3BucketResources: string[];
+  s3BucketResources?: string[];
 
   /**
    * Whether this deployment is gated behind a JWT authorizer, or if its public.
    */
-  jwtAuthorizer: HtsgetJwtAuthSettings;
+  jwtAuthorizer?: HtsgetJwtAuthSettings;
 
   /**
    * The Secrets Manager secrets which htsget-rs needs access to. This affects the permissions that get added to the
@@ -205,75 +230,50 @@ export class HtsgetLambdaConstruct extends Construct {
 
     const config = this.getConfig(settings.config);
 
-    const lambdaRole = new Role(this, id + "Role", {
-      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-      description: "Lambda execution role for " + id,
-    });
-
-    const s3BucketPolicy = new PolicyStatement({
-      actions: ["s3:List*", "s3:Get*"],
-      resources: settings.s3BucketResources ?? [],
-    });
-
+    let bucket = undefined;
     if (settings.createS3Bucket) {
-      const bucket = new Bucket(this, "Bucket", {
-        blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-        encryption: BucketEncryption.S3_MANAGED,
-        enforceSSL: true,
-        removalPolicy: RemovalPolicy.RETAIN,
-        bucketName: settings.bucketName,
-      });
+      bucket = this.createBucket(settings.copyTestData, settings.bucketName);
+    }
 
-      if (settings.copyTestData) {
-        // Copy data from upstream htsget-data repo
-        const localDataPath = path.join(tmpdir(), "htsget-rs");
+    let keys = undefined;
+    if (settings.copyTestData && settings.copyExampleKeys) {
+      keys = this.createKeys();
+    }
 
-        new BucketDeployment(this, "DeployFiles", {
-          sources: [Source.asset(localDataPath)],
-          destinationBucket: bucket,
-        });
+    let lambdaRole: Role;
+    if (settings.role !== undefined) {
+      lambdaRole = settings.role;
+    } else {
+      lambdaRole = this.createRole(
+        id,
+        bucket,
+        settings.s3BucketResources,
+        settings.secretArns,
+        keys?.private_key,
+        keys?.public_key,
+      );
+    }
+
+    let httpApi;
+    if (settings.httpApi !== undefined) {
+      httpApi = settings.httpApi;
+    } else {
+      if (
+        settings.domain === undefined ||
+        settings.jwtAuthorizer === undefined
+      ) {
+        throw Error(
+          "domain and jwtAuthorizer must be defined if httpApi is not specified",
+        );
       }
 
-      s3BucketPolicy.addResources(`arn:aws:s3:::${bucket.bucketName}/*`);
-
-      new CfnOutput(this, "HtsgetBucketName", { value: bucket.bucketName });
-    }
-
-    const secretPolicy = new PolicyStatement({
-      actions: ["secretsmanager:GetSecretValue"],
-      resources: settings.secretArns ?? [],
-    });
-
-    if (settings.copyTestData && settings.copyExampleKeys) {
-      const dataDir = path.join(tmpdir(), "htsget-rs", "data", "c4gh", "keys");
-      const private_key = new Secret(this, "SecretPrivateKey-C4GH", {
-        secretName: "htsget-rs/privkey-crypt4gh", // pragma: allowlist secret
-        secretStringValue: SecretValue.unsafePlainText(
-          readFileSync(path.join(dataDir, "bob.sec")).toString(),
-        ),
-        removalPolicy: RemovalPolicy.RETAIN,
-      });
-      const public_key = new Secret(this, "SecretPublicKey-C4GH", {
-        secretName: "htsget-rs/pubkey-crypt4gh", // pragma: allowlist secret
-        secretStringValue: SecretValue.unsafePlainText(
-          readFileSync(path.join(dataDir, "alice.pub")).toString(),
-        ),
-        removalPolicy: RemovalPolicy.RETAIN,
-      });
-
-      secretPolicy.addResources(private_key.secretArn, public_key.secretArn);
-    }
-
-    lambdaRole.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName(
-        "service-role/AWSLambdaBasicExecutionRole",
-      ),
-    );
-    if (s3BucketPolicy.resources.length !== 0) {
-      lambdaRole.addToPolicy(s3BucketPolicy);
-    }
-    if (secretPolicy.resources.length !== 0) {
-      lambdaRole.addToPolicy(secretPolicy);
+      httpApi = this.createHttpApi(
+        settings.domain,
+        settings.jwtAuthorizer,
+        config,
+        settings.subDomain,
+        settings.lookupHostedZone,
+      );
     }
 
     let features = settings.features ?? [];
@@ -281,7 +281,7 @@ export class HtsgetLambdaConstruct extends Construct {
       .filter((f) => f !== "s3-storage")
       .concat(["s3-storage"]);
 
-    let htsgetLambda = new RustFunction(this, id + "Function", {
+    let htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
       gitForceClone: true,
       binaryName: "htsget-lambda",
@@ -302,30 +302,145 @@ export class HtsgetLambdaConstruct extends Construct {
       },
       architecture: Architecture.ARM_64,
       role: lambdaRole,
+      vpc: settings.vpc,
     });
 
     const httpIntegration = new HttpLambdaIntegration(
-      id + "HtsgetIntegration",
+      "HtsgetIntegration",
       htsgetLambda,
     );
+    httpApi.addRoutes({
+      path: "/{proxy+}",
+      methods: [HttpMethod.GET, HttpMethod.POST],
+      integration: httpIntegration,
+    });
+  }
 
+  /**
+   * Create a bucket and copy test data if configured.
+   */
+  private createBucket(copyTestData?: boolean, bucketName?: string): Bucket {
+    const bucket = new Bucket(this, "Bucket", {
+      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+      encryption: BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      removalPolicy: RemovalPolicy.RETAIN,
+      bucketName,
+    });
+
+    if (copyTestData) {
+      // Copy data from upstream htsget-data repo
+      const localDataPath = path.join(tmpdir(), "htsget-rs");
+
+      new BucketDeployment(this, "DeployFiles", {
+        sources: [Source.asset(localDataPath)],
+        destinationBucket: bucket,
+      });
+    }
+
+    new CfnOutput(this, "HtsgetBucketName", { value: bucket.bucketName });
+
+    return bucket;
+  }
+
+  /**
+   * Create C4GH keys inside AWS SecretsManager
+   */
+  private createKeys(): { private_key: Secret; public_key: Secret } {
+    const dataDir = path.join(tmpdir(), "htsget-rs", "data", "c4gh", "keys");
+    const private_key = new Secret(this, "SecretPrivateKey-C4GH", {
+      secretName: "htsget-rs/privkey-crypt4gh", // pragma: allowlist secret
+      secretStringValue: SecretValue.unsafePlainText(
+        readFileSync(path.join(dataDir, "bob.sec")).toString(),
+      ),
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+    const public_key = new Secret(this, "SecretPublicKey-C4GH", {
+      secretName: "htsget-rs/pubkey-crypt4gh", // pragma: allowlist secret
+      secretStringValue: SecretValue.unsafePlainText(
+        readFileSync(path.join(dataDir, "alice.pub")).toString(),
+      ),
+      removalPolicy: RemovalPolicy.RETAIN,
+    });
+
+    return { private_key, public_key };
+  }
+
+  /**
+   * Creates a lambda role with the configured permissions.
+   */
+  private createRole(
+    id: string,
+    bucket: any,
+    s3BucketResources?: string[],
+    secretArns?: string[],
+    private_key?: Secret,
+    public_key?: Secret,
+  ): Role {
+    const lambdaRole = new Role(this, "Role", {
+      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+      description: "Lambda execution role for " + id,
+    });
+    lambdaRole.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName(
+        "service-role/AWSLambdaBasicExecutionRole",
+      ),
+    );
+
+    if (bucket !== undefined) {
+      const s3BucketPolicy = new PolicyStatement({
+        actions: ["s3:List*", "s3:Get*"],
+        resources: s3BucketResources ?? [],
+      });
+      s3BucketPolicy.addResources(`arn:aws:s3:::${bucket.bucketName}/*`);
+
+      if (s3BucketPolicy.resources.length !== 0) {
+        lambdaRole.addToPolicy(s3BucketPolicy);
+      }
+    }
+
+    if (private_key !== undefined && public_key !== undefined) {
+      const secretPolicy = new PolicyStatement({
+        actions: ["secretsmanager:GetSecretValue"],
+        resources: secretArns ?? [],
+      });
+      secretPolicy.addResources(private_key.secretArn, public_key.secretArn);
+
+      if (secretPolicy.resources.length !== 0) {
+        lambdaRole.addToPolicy(secretPolicy);
+      }
+    }
+
+    return lambdaRole;
+  }
+
+  /**
+   * Create stateful config related to the httpApi and the API itself.
+   */
+  private createHttpApi(
+    domain: string,
+    jwtAuthorizer: HtsgetJwtAuthSettings,
+    config: Config,
+    subDomain?: string,
+    lookupHostedZone?: boolean,
+  ): HttpApi {
     // Add an authorizer if auth is required.
     let authorizer = undefined;
-    if (!settings.jwtAuthorizer.public) {
+    if (!jwtAuthorizer.public) {
       // If the cog user pool id is not specified, create a new one.
-      if (settings.jwtAuthorizer.cogUserPoolId === undefined) {
+      if (jwtAuthorizer.cogUserPoolId === undefined) {
         const pool = new UserPool(this, "userPool", {
           userPoolName: "HtsgetRsUserPool",
         });
-        settings.jwtAuthorizer.cogUserPoolId = pool.userPoolId;
+        jwtAuthorizer.cogUserPoolId = pool.userPoolId;
       }
 
       authorizer = new HttpJwtAuthorizer(
-        id + "HtsgetAuthorizer",
-        `https://cognito-idp.${Stack.of(this).region}.amazonaws.com/${settings.jwtAuthorizer.cogUserPoolId}`,
+        "HtsgetAuthorizer",
+        `https://cognito-idp.${Stack.of(this).region}.amazonaws.com/${jwtAuthorizer.cogUserPoolId}`,
         {
           identitySource: ["$request.header.Authorization"],
-          jwtAudience: settings.jwtAuthorizer.jwtAudience ?? [],
+          jwtAudience: jwtAuthorizer.jwtAudience ?? [],
         },
       );
     } else {
@@ -335,32 +450,32 @@ export class HtsgetLambdaConstruct extends Construct {
     }
 
     let hostedZone;
-    if (settings.lookupHostedZone ?? true) {
+    if (lookupHostedZone ?? true) {
       hostedZone = HostedZone.fromLookup(this, "HostedZone", {
-        domainName: settings.domain,
+        domainName: domain,
       });
     } else {
-      hostedZone = new HostedZone(this, id + "HtsgetHostedZone", {
-        zoneName: settings.domain,
+      hostedZone = new HostedZone(this, "HtsgetHostedZone", {
+        zoneName: domain,
       });
     }
 
-    let url = `${settings.subDomain ?? "htsget"}.${settings.domain}`;
+    let url = `${subDomain ?? "htsget"}.${domain}`;
 
-    let certificate = new Certificate(this, id + "HtsgetCertificate", {
+    let certificate = new Certificate(this, "HtsgetCertificate", {
       domainName: url,
       validation: CertificateValidation.fromDns(hostedZone),
       certificateName: url,
     });
 
-    const domainName = new DomainName(this, id + "HtsgetDomainName", {
+    const domainName = new DomainName(this, "HtsgetDomainName", {
       certificate: certificate,
       domainName: url,
     });
 
-    new ARecord(this, id + "HtsgetARecord", {
+    new ARecord(this, "HtsgetARecord", {
       zone: hostedZone,
-      recordName: settings.subDomain ?? "htsget",
+      recordName: subDomain ?? "htsget",
       target: RecordTarget.fromAlias(
         new ApiGatewayv2DomainProperties(
           domainName.regionalDomainName,
@@ -369,7 +484,7 @@ export class HtsgetLambdaConstruct extends Construct {
       ),
     });
 
-    const httpApi = new HttpApi(this, id + "ApiGw", {
+    return new HttpApi(this, "ApiGw", {
       defaultAuthorizer: authorizer,
       defaultDomainMapping: {
         domainName: domainName,
@@ -382,12 +497,6 @@ export class HtsgetLambdaConstruct extends Construct {
         exposeHeaders: config.exposeHeaders,
         maxAge: config.maxAge,
       },
-    });
-
-    httpApi.addRoutes({
-      path: "/{proxy+}",
-      methods: [HttpMethod.GET, HttpMethod.POST],
-      integration: httpIntegration,
     });
   }
 
@@ -470,29 +579,4 @@ export class HtsgetLambdaConstruct extends Construct {
           : undefined,
     };
   }
-
-  /**
-   * Spawn sync with error handling
-   */
-  exec(cmd: string, args: string[]) {
-    const proc = spawnSync(cmd, args);
-
-    if (proc.error) {
-      throw proc.error;
-    }
-
-    if (proc.status !== 0) {
-      if (proc.stdout || proc.stderr) {
-        throw new Error(
-          `[Status ${proc.status}] stdout: ${proc.stdout?.toString().trim()}\n\n\nstderr: ${proc.stderr?.toString().trim()}`,
-        );
-      }
-      throw new Error(`${cmd} exited with status ${proc.status}`);
-    }
-
-    return proc;
-  }
-  // fetchExampleDataAndKeys() {
-  //
-  // }
 }
