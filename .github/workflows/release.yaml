@@ -18,5 +18,6 @@ jobs:
       - run: pnpm version ${{ github.ref_name }}
       - run: pnpm run build
       - run: pnpm publish --access public
+        working-directory: dist
         env:
           NPM_TOKEN: ${{ secrets.HTSGET_RS_DEPLOY_PUBLISH_TOKEN }}
