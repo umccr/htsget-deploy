@@ -1,7 +1,9 @@
 node_modules
 .DS_Store
 volume
-package-lock.json
 .build
 cdk.context.json
 cdk.out
+*.js
+*.d.ts
+dist
