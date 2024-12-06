@@ -14,29 +14,6 @@ contact_url = "https://umccr.org/"
 documentation_url = "https://github.com/umccr/htsget-rs"
 environment = "dev"
 
-# C4GH prefix indicates Crypt4GH files.
-[[resolvers]]
-regex = '^(?P<bucket>.*?)/(?P<key>c4gh/.*)$'
-substitution_string = '$key'
-storage.backend = 'S3'
-
-[resolvers.storage.keys]
-location = "SecretsManager"
-private_key = "htsget-rs/private-key-c4gh" # pragma: allowlist secret
-recipient_public_key = "htsget-rs/recipient-public-key-c4gh"
-
-# Everything else is a regular file.
-[[resolvers]]
-regex = '^(?P<bucket>.*?)/(?P<key>c4gh/.*)$'
-substitution_string = '$key'
-storage.backend = 'S3'
-
-[resolvers.storage.keys]
-location = "SecretsManager"
-private_key = "htsget-rs/private-key-c4gh" # pragma: allowlist secret
-recipient_public_key = "htsget-rs/recipient-public-key-c4gh"
-
-# Everything else is a regular file.
 [[resolvers]]
 regex = '^(?P<bucket>.*?)/(?P<key>c4gh/.*)$'
 substitution_string = '$key'
