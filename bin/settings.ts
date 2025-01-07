@@ -22,5 +22,5 @@ export const SETTINGS: HtsgetStatelessSettings & HtsgetStatefulSettings = {
     jwtAudience: [""], // Should match your cognito client id, i.e: 3jgmc7kqaaf8mqbv2sgmujslrp
   },
   // Enable additional features for compiling htsget-rs. `s3-storage` is always enabled.
-  features: ["experimental"], // i.e: Enables Crypt4Gh+htsget functionality
+  features: ["experimental", "aws"], // i.e: Enables Crypt4Gh+htsget functionality
 };
