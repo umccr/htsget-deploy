@@ -155,6 +155,11 @@ export type HtsgetStatelessSettings = {
    * Additional features to compile htsget-rs with. Defaults to `[]`. `s3-storage` is always enabled.
    */
   features?: string[];
+
+  /**
+   * The git reference to fetch from the htsget-rs repo.
+   */
+  gitReference?: string;
 };
 
 /**
@@ -277,13 +282,10 @@ export class HtsgetLambdaConstruct extends Construct {
     }
 
     let features = settings.features ?? [];
-    features = features
-      .filter((f) => f !== "s3-storage")
-      .concat(["s3-storage"]);
-
     let htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
       gitForceClone: true,
+      gitReference: settings.gitReference,
       binaryName: "htsget-lambda",
       bundling: {
         environment: {
