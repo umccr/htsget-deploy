@@ -299,7 +299,7 @@ export class HtsgetLambdaConstruct extends Construct {
           CARGO_PROFILE_RELEASE_LTO: "true",
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
         },
-        cargoLambdaFlags: ["--features", features.join(",")],
+        cargoLambdaFlags: features,
       },
       memorySize: 128,
       timeout: Duration.seconds(28),
