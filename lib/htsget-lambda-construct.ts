@@ -44,6 +44,7 @@ import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { tmpdir } from "os";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import { JsonMap } from "@iarna/toml";
+import { HtsgetConstructProps } from "./config";
 
 /**
  * These options are related to creating stateful resources. Some of these might conflict with existing resources
@@ -114,48 +115,6 @@ export type HtsgetStatefulSettings = {
 };
 
 /**
- * Settings related to the htsget lambda construct props.
- */
-export type HtsgetStatelessSettings = {
-  /**
-   * The location of the htsget-rs config file.
-   */
-  config: string;
-
-  /**
-   * The buckets to serve data from. If this is not specified, this defaults to `[]`.
-   * This affects which buckets are allowed to be accessed by the policy actions which are `["s3:List*", "s3:Get*"]`.
-   * Note that this option does not create buckets, it only gives permission to access them, see the `createS3Buckets`
-   * option. This option must be specified to allow `htsget-rs` to access data in buckets that are not created in
-   * this construct.
-   */
-  s3BucketResources?: string[];
-
-  /**
-   * Whether this deployment is gated behind a JWT authorizer, or if its public.
-   */
-  jwtAuthorizer?: HtsgetJwtAuthSettings;
-
-  /**
-   * The Secrets Manager secrets which htsget-rs needs access to. This affects the permissions that get added to the
-   * Lambda role by policy actions target `secretsmanager:GetSecretValue`. Secrets specified here get added as resources
-   * in the policy statement. Defaults to `[]`. Permissions are automatically added if `copyExampleKeys` is specified,
-   * even if this option is set to `[]`.
-   */
-  secretArns?: string[];
-
-  /**
-   * Additional features to compile htsget-rs with. By default, all features are enabled.
-   */
-  features?: string[];
-
-  /**
-   * The git reference to fetch from the htsget-rs repo.
-   */
-  gitReference?: string;
-};
-
-/**
  * JWT authorization settings.
  */
 export type HtsgetJwtAuthSettings = {
@@ -219,11 +178,7 @@ export type Config = {
  * Construct used to deploy htsget-lambda.
  */
 export class HtsgetLambdaConstruct extends Construct {
-  constructor(
-    scope: Construct,
-    id: string,
-    settings: HtsgetStatelessSettings & HtsgetStatefulSettings,
-  ) {
+  constructor(scope: Construct, id: string, props: HtsgetConstructProps) {
     super(scope, id);
 
     const config = this.getConfig(settings.config);
