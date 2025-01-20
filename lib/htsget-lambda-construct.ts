@@ -12,7 +12,6 @@ import { Construct } from "constructs";
 
 import { UserPool } from "aws-cdk-lib/aws-cognito";
 import {
-  IRole,
   ManagedPolicy,
   PolicyStatement,
   Role,
@@ -23,12 +22,7 @@ import {
   Certificate,
   CertificateValidation,
 } from "aws-cdk-lib/aws-certificatemanager";
-import {
-  ARecord,
-  CfnHostedZone,
-  HostedZone,
-  RecordTarget,
-} from "aws-cdk-lib/aws-route53";
+import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGatewayv2DomainProperties } from "aws-cdk-lib/aws-route53-targets";
 import { RustFunction } from "cargo-lambda-cdk";
 import path from "path";
@@ -48,9 +42,8 @@ import {
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 import { tmpdir } from "os";
-import { spawnSync } from "child_process";
-import VPCProperty = CfnHostedZone.VPCProperty;
 import { IVpc } from "aws-cdk-lib/aws-ec2";
+import { JsonMap } from "@iarna/toml";
 
 /**
  * These options are related to creating stateful resources. Some of these might conflict with existing resources
@@ -283,12 +276,12 @@ export class HtsgetLambdaConstruct extends Construct {
 
     let features;
     if (settings.features !== undefined) {
-      features = ["--features", settings.features.join(",")]
+      features = ["--features", settings.features.join(",")];
     } else {
       features = ["--all-features"];
     }
 
-    let htsgetLambda = new RustFunction(this, "Function", {
+    const htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
       gitForceClone: true,
       gitReference: settings.gitReference,
@@ -379,7 +372,7 @@ export class HtsgetLambdaConstruct extends Construct {
    */
   private createRole(
     id: string,
-    bucket: any,
+    bucket?: Bucket,
     s3BucketResources?: string[],
     secretArns?: string[],
     private_key?: Secret,
@@ -468,9 +461,8 @@ export class HtsgetLambdaConstruct extends Construct {
       });
     }
 
-    let url = `${subDomain ?? "htsget"}.${domain}`;
-
-    let certificate = new Certificate(this, "HtsgetCertificate", {
+    const url = `${subDomain ?? "htsget"}.${domain}`;
+    const certificate = new Certificate(this, "HtsgetCertificate", {
       domainName: url,
       validation: CertificateValidation.fromDns(hostedZone),
       certificateName: url,
@@ -511,7 +503,9 @@ export class HtsgetLambdaConstruct extends Construct {
   /**
    * Convert JSON config to htsget-rs env representation.
    */
-  static configToEnv(config: any): { [key: string]: string } {
+  static configToEnv<T extends Record<string, TOML.AnyJson>>(
+    config: T,
+  ): { [key: string]: string } {
     const out: { [key: string]: string } = {};
     for (const key in config) {
       out[`HTSGET_${key.toUpperCase()}`] = TOML.stringify.value(config[key]);
@@ -522,7 +516,10 @@ export class HtsgetLambdaConstruct extends Construct {
   /**
    * Convert htsget-rs CORS option to CORS options for API Gateway.
    */
-  static convertCors(configToml: any, corsValue: string): string[] | undefined {
+  static convertCors(
+    configToml: JsonMap,
+    corsValue: string,
+  ): string[] | undefined {
     const value = configToml[corsValue];
 
     if (
@@ -532,7 +529,7 @@ export class HtsgetLambdaConstruct extends Construct {
     ) {
       return ["*"];
     } else if (Array.isArray(value)) {
-      return value;
+      return value as string[];
     }
 
     return undefined;
