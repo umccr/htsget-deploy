@@ -1,1 +1,1 @@
-export * from "./lib/htsget-lambda-construct";
+export * from "./lib/htsget-construct";

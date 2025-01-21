@@ -2,6 +2,7 @@ import { IVpc } from "aws-cdk-lib/aws-ec2";
 import { CorsHttpMethod, HttpApi } from "aws-cdk-lib/aws-apigatewayv2";
 import { Role } from "aws-cdk-lib/aws-iam";
 import { Duration } from "aws-cdk-lib";
+import { HostedZone } from "aws-cdk-lib/aws-route53";
 
 /**
  * Settings related to the htsget lambda construct props.
@@ -11,6 +12,17 @@ export type HtsgetConstructProps = {
    * The htsget-rs config options.
    */
   htsgetConfig?: HtsgetConfig;
+
+  /**
+   * The domain name for the htsget server. This must be specified if `httpApi` is not set. This assumes
+   * that a `HostedZone` exists for this domain.
+   */
+  domain?: string;
+
+  /**
+   * The domain name prefix to use for the htsget-rs server. Defaults to `"htsget"`.
+   */
+  subDomain?: string;
 
   /**
    * Whether this deployment is gated behind a JWT authorizer, or if its public.
@@ -23,37 +35,16 @@ export type HtsgetConstructProps = {
   corsConfig?: CorsConifg;
 
   /**
-   * Additional features to compile htsget-rs with. By default, all features are enabled.
-   */
-  features?: string[];
-
-  /**
    * The git reference to fetch from the htsget-rs repo.
    */
   gitReference?: string;
 
   /**
-   * The domain name for the htsget server. This must be specified is `httpApi` is not set. This assumes
-   * that a `HostedZone` exists for this domain. Set `createHostedZone` if you want to create a new hosted zone.
-   */
-  domain?: string;
-
-  /**
-   * The domain name prefix to use for the htsget-rs server. Defaults to `"htsget"`.
-   */
-  subDomain?: string;
-
-  /**
-   * Whether to create a hosted zone. Defaults to `false`.
-   */
-  createHostedZone?: boolean;
-
-  /**
    * Copy the test data directory to a new bucket:
    * https://github.com/umccr/htsget-rs/tree/main/data
    *
-   * Also copies the Crypt4GH keys to Secrets Manager. Gives
-   * the htsget-rs server access to the bucket and secrets using the locations config. Defaults to `false`.
+   * Also copies the Crypt4GH keys to Secrets Manager. Gives the htsget-rs server access
+   * to the bucket and secrets using the locations config. Defaults to `false`.
    */
   copyTestData?: boolean;
 
@@ -67,6 +58,11 @@ export type HtsgetConstructProps = {
    * or authorizers, and will instead rely on the existing `HttpApi`.
    */
   httpApi?: HttpApi;
+
+  /**
+   * Use the provided hosted zone instead of looking it up from the domain name.
+   */
+  hostedZone?: HostedZone;
 
   /**
    * Use the provided role instead of creating one. This will ignore any configuration related to permissions for
@@ -87,7 +83,7 @@ export type JwtAuthConfig = {
   /**
    * The JWT audience.
    */
-  jwtAudience: string[];
+  jwtAudience?: string[];
 
   /**
    * The cognito user pool id for the authorizer. If this is not set, then a new user pool is created.
@@ -139,19 +135,37 @@ export type HtsgetConfig = {
    * The locations for the htsget-rs server. This is the same as the htsget-rs config locations:
    * https://github.com/umccr/htsget-rs/tree/main/htsget-config#quickstart
    *
-   * Any `s3://...` locations specified will automatically be added to the bucket access policy.
+   * Any `s3://...` locations will automatically be added to the bucket access policy.
    */
-  locations: string[];
+  locations: HtsgetLocation[];
 
   /**
    * Service info fields to configure for the server. This is the same as the htsget-rs config service_info:
    * https://github.com/umccr/htsget-rs/tree/main/htsget-config#service-info-config
    */
-  service_info: Record<string, object>;
+  service_info?: Record<string, object>;
 
   /**
    * Any additional htsget-rs options can be specified here as environment variables. These will override
    * any options set in this construct, and allows using advanced configuration.
    */
-  environment_override: Record<string, string>;
+  environment_override?: Record<string, object>;
+};
+
+/**
+ * Config for locations.
+ */
+export type HtsgetLocation = {
+  /**
+   * The location string.
+   */
+  location: string;
+  /**
+   * Optional Crypt4GH private key secret ARN or name.
+   */
+  private_key?: string;
+  /**
+   * Optional Crypt4GH public key secret ARN or name.
+   */
+  public_key?: string;
 };

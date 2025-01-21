@@ -3,7 +3,6 @@
     "htsget_app": "bin/htsget-lambda.js"
   },
   "dependencies": {
-    "@iarna/toml": "^3.0.0",
     "cargo-lambda-cdk": "^0.0.31"
   },
   "devDependencies": {

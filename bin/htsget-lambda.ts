@@ -1,32 +1,41 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { HtsgetLambdaConstruct } from "../lib/htsget-lambda-construct";
-import { SETTINGS } from "../bin/settings";
-import { HtsgetStatefulSettings } from "../lib/htsget-lambda-construct";
-import { HtsgetStatelessSettings } from "../lib/htsget-lambda-construct";
+import { HtsgetConstruct } from "../lib/htsget-construct";
+import { HtsgetConstructProps } from "../lib/config";
 
-export class HtsgetTestStack extends cdk.Stack {
+export class HtsgetStack extends cdk.Stack {
   constructor(
     scope: Construct,
     id: string,
-    settings: HtsgetStatefulSettings & HtsgetStatelessSettings,
+    settings: HtsgetConstructProps,
     props?: cdk.StackProps,
   ) {
     super(scope, id, props);
 
-    new HtsgetLambdaConstruct(this, "Htsget-rs", SETTINGS);
+    new HtsgetConstruct(this, "Htsget-rs", settings);
   }
 }
 
 const app = new cdk.App();
-new HtsgetTestStack(app, "HtsgetTestStack", SETTINGS, {
-  stackName: "HtsgetTestStack",
-  description: "HtsgetTestStack",
-  tags: {
-    Stack: "HtsgetTestStack",
+new HtsgetStack(
+  app,
+  "Htsget",
+  {
+    domain: "ga4gh-demo.org",
+    copyTestData: true,
+    jwtAuthorizer: {
+      public: true,
+    },
   },
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
+  {
+    stackName: "Htsget",
+    description: "Htsget",
+    tags: {
+      Stack: "Htsget",
+    },
+    env: {
+      account: process.env.CDK_DEFAULT_ACCOUNT,
+      region: process.env.CDK_DEFAULT_REGION,
+    },
   },
-});
+);

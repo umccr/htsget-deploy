@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@iarna/toml':
-        specifier: ^3.0.0
-        version: 3.0.0
       cargo-lambda-cdk:
         specifier: ^0.0.31
         version: 0.0.31(aws-cdk-lib@2.112.0(constructs@10.4.2))(constructs@10.4.2)
@@ -107,9 +104,6 @@ packages:
   '@humanwhocodes/retry@0.4.1':
     resolution: {integrity: sha512-c7hNEllBlenFTHBky65mhq8WD2kbN9Q6gk0bTk8lSBvc554jpXSkST1iePudpt7+A/AQvuHs9EMqjHDXMY1lrA==}
     engines: {node: '>=18.18'}
-
-  '@iarna/toml@3.0.0':
-    resolution: {integrity: sha512-td6ZUkz2oS3VeleBcN+m//Q6HlCFCPrnI0FZhrt/h4XqLEdOyYp2u21nd8MdsR+WJy5r9PTDaHTDDfhf4H4l6Q==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -642,8 +636,6 @@ snapshots:
   '@humanwhocodes/retry@0.3.1': {}
 
   '@humanwhocodes/retry@0.4.1': {}
-
-  '@iarna/toml@3.0.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
