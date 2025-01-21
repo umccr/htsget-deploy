@@ -1,0 +1,10 @@
+{
+  "flattenOutputFiles": true,
+  "outputFileStrategy": "modules",
+  "interfacePropertiesFormat": "table",
+  "entryPoints": ["index.ts"],
+  "plugin": "typedoc-plugin-markdown",
+  "readme": "none",
+  "entryFileName": "CONFIG.md",
+  "hideGroupHeadings": true
+}

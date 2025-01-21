@@ -49,16 +49,18 @@ import { tmpdir } from "os";
 import {
   CorsConifg,
   HtsgetConfig,
-  HtsgetConstructProps,
+  HtsgetLambdaProps,
   HtsgetLocation,
   JwtAuthConfig,
 } from "./config";
+import * as readline from "node:readline";
 
 /**
+ * @ignore
  * Construct used to deploy htsget-lambda.
  */
-export class HtsgetConstruct extends Construct {
-  constructor(scope: Construct, id: string, props: HtsgetConstructProps) {
+export class HtsgetLambda extends Construct {
+  constructor(scope: Construct, id: string, props: HtsgetLambdaProps) {
     super(scope, id);
 
     if (props.htsgetConfig == undefined) {
@@ -261,14 +263,14 @@ export class HtsgetConstruct extends Construct {
    */
   private createHttpApi(
     domain: string,
-    jwtAuthorizer: JwtAuthConfig,
+    jwtAuthorizer?: JwtAuthConfig,
     config?: CorsConifg,
     subDomain?: string,
     hostedZone?: HostedZone,
   ): HttpApi {
     // Add an authorizer if auth is required.
     let authorizer: HttpJwtAuthorizer | undefined = undefined;
-    if (!jwtAuthorizer.public) {
+    if (jwtAuthorizer !== undefined) {
       // If the cog user pool id is not specified, create a new one.
       if (jwtAuthorizer.cogUserPoolId === undefined) {
         const pool = new UserPool(this, "UserPool");
@@ -284,8 +286,21 @@ export class HtsgetConstruct extends Construct {
         },
       );
     } else {
-      console.warn(
-        "This will create an instance of htsget-rs that is public! Anyone will be able to query the server without authorization.",
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      rl.question(
+        "This will create an instance of htsget-rs that is public! Anyone will be able to query the server without authorization. Continue? [y/n] ",
+        (answer) => {
+          switch (answer.toLowerCase()) {
+            case "y":
+              break;
+            default:
+              process.exit(0);
+          }
+        },
       );
     }
 
