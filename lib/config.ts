@@ -9,7 +9,7 @@ import { HostedZone } from "aws-cdk-lib/aws-route53";
  */
 export interface HtsgetLambdaProps {
   /**
-   * The htsget-rs config options.
+   * The htsget-rs config options. Use this to specify any locations and htsget-rs options.
    *
    * @defaultValue undefined
    */
@@ -38,7 +38,7 @@ export interface HtsgetLambdaProps {
   jwt?: JwtConfig;
 
   /**
-   * CORS configuration for the htsget-rs server.
+   * CORS configuration for the htsget-rs server. Values here are propagated to CORS options in htsget-rs.
    *
    * @defaultValue same as the `CorsConfig` defaults
    */
@@ -63,7 +63,7 @@ export interface HtsgetLambdaProps {
    * Copy the test data directory to a new bucket:
    * https://github.com/umccr/htsget-rs/tree/main/data
    *
-   * Also copies the Crypt4GH keys to Secrets Manager. Gives the htsget-rs server access
+   * Also copies the Crypt4GH keys to Secrets Manager. Automatically the htsget-rs server access
    * to the bucket and secrets using the locations config.
    *
    * @defaultValue false
@@ -115,7 +115,7 @@ export interface JwtConfig {
   /**
    * The cognito user pool id for the authorizer. If this is not set, then a new user pool is created.
    *
-   * @defaultValue creates a new user pool ``
+   * @defaultValue `undefined`, creates a new user pool
    */
   cogUserPoolId?: string;
 }
@@ -168,7 +168,7 @@ export interface CorsConifg {
 }
 
 /**
- * Configuration for the htsget-rs server. Options here are a subset of the options
+ * Configuration for the htsget-rs server. This allows specifying the options
  * available in the htsget-rs config: https://github.com/umccr/htsget-rs/tree/main/htsget-config
  */
 export interface HtsgetConfig {
