@@ -33,23 +33,31 @@ export interface HtsgetLambdaProps {
   /**
    * Whether this deployment is gated behind a JWT authorizer, or if its public.
    *
-   * @defaultValue defaults to a public deployment.
+   * @defaultValue `undefined`, defaults to a public deployment
    */
   jwtAuthorizer?: JwtAuthConfig;
 
   /**
    * CORS configuration for the htsget-rs server.
    *
-   * @defaultValue same as the `CorsConfig` defaults.
+   * @defaultValue same as the `CorsConfig` defaults
    */
   corsConfig?: CorsConifg;
 
   /**
    * The git reference to fetch from the htsget-rs repo.
    *
-   * @defaultValue main branch
+   * @defaultValue "main"
    */
   gitReference?: string;
+
+  /**
+   * Override any cargo lambda flags for the build. By default, features are resolved automatically based on the
+   * config and `HtsgetLocation[]`. This option overrides that and any automatically added flags.
+   *
+   * @defaultValue undefined
+   */
+  cargoLambdaFlags?: string[];
 
   /**
    * Copy the test data directory to a new bucket:
@@ -107,7 +115,7 @@ export interface JwtAuthConfig {
   /**
    * The cognito user pool id for the authorizer. If this is not set, then a new user pool is created.
    *
-   * @defaultValue creates a new user pool
+   * @defaultValue creates a new user pool ``
    */
   cogUserPoolId?: string;
 }
@@ -172,7 +180,7 @@ export interface HtsgetConfig {
    *
    * @defaultValue []
    */
-  locations: HtsgetLocation[];
+  locations?: HtsgetLocation[];
 
   /**
    * Service info fields to configure for the server. This is the same as the htsget-rs config service_info:
@@ -180,15 +188,16 @@ export interface HtsgetConfig {
    *
    * @defaultValue undefined
    */
-  service_info?: Record<string, object>;
+  service_info?: Record<string, unknown>;
 
   /**
    * Any additional htsget-rs options can be specified here as environment variables. These will override
-   * any options set in this construct, and allows using advanced configuration.
+   * any options set in this construct, and allows using advanced configuration. Options here should contain
+   * the `HTSGET_` prefix.
    *
    * @defaultValue undefined
    */
-  environment_override?: Record<string, object>;
+  environment_override?: Record<string, unknown>;
 }
 
 /**

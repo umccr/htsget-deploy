@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
 
 import {
+  Aws,
   CfnOutput,
   Duration,
   RemovalPolicy,
@@ -45,15 +46,14 @@ import {
 } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
-import { tmpdir } from "os";
 import {
   CorsConifg,
   HtsgetConfig,
   HtsgetLambdaProps,
-  HtsgetLocation,
   JwtAuthConfig,
 } from "./config";
-import * as readline from "node:readline";
+import { getManifestPath } from "cargo-lambda-cdk/lib/cargo";
+import { spawnSync } from "node:child_process";
 
 /**
  * @ignore
@@ -69,11 +69,18 @@ export class HtsgetLambda extends Construct {
       };
     }
 
+    const manifestPath = getManifestPath({
+      gitRemote: "https://github.com/umccr/htsget-rs",
+      gitForceClone: true,
+      gitReference: props.gitReference,
+    });
+    const repoDir = path.dirname(manifestPath);
+
     let bucket: Bucket | undefined = undefined;
     let privateKey: Secret | undefined = undefined;
     let publicKey: Secret | undefined = undefined;
     if (props.copyTestData) {
-      [bucket, privateKey, publicKey] = this.setupTestData();
+      [bucket, privateKey, publicKey] = this.setupTestData(repoDir);
     }
 
     let lambdaRole: Role;
@@ -93,10 +100,8 @@ export class HtsgetLambda extends Construct {
     if (props.httpApi !== undefined) {
       httpApi = props.httpApi;
     } else {
-      if (props.domain === undefined || props.jwtAuthorizer === undefined) {
-        throw Error(
-          "domain and jwtAuthorizer must be defined if httpApi is not specified",
-        );
+      if (props.domain === undefined) {
+        throw Error("domain must be defined if httpApi is not specified");
       }
 
       httpApi = this.createHttpApi(
@@ -109,8 +114,9 @@ export class HtsgetLambda extends Construct {
 
     const htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
-      gitForceClone: true,
+      gitForceClone: false,
       gitReference: props.gitReference,
+      manifestPath: path.join(repoDir, "Cargo.toml"),
       binaryName: "htsget-lambda",
       bundling: {
         environment: {
@@ -118,7 +124,14 @@ export class HtsgetLambda extends Construct {
           CARGO_PROFILE_RELEASE_LTO: "true",
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
         },
-        cargoLambdaFlags: ["--all-features"],
+        cargoLambdaFlags: props.cargoLambdaFlags ?? [
+          this.resolveFeatures(
+            props.htsgetConfig,
+            bucket,
+            privateKey,
+            publicKey,
+          ),
+        ],
       },
       memorySize: 128,
       timeout: Duration.seconds(28),
@@ -130,8 +143,7 @@ export class HtsgetLambda extends Construct {
           privateKey,
           publicKey,
         ),
-        RUST_LOG:
-          "info,htsget_http_lambda=trace,htsget_config=trace,htsget_http_core=trace,htsget_search=trace",
+        RUST_LOG: "trace",
       },
       architecture: Architecture.ARM_64,
       role: lambdaRole,
@@ -147,44 +159,98 @@ export class HtsgetLambda extends Construct {
       methods: [HttpMethod.GET, HttpMethod.POST],
       integration: httpIntegration,
     });
+
+    if (httpApi.defaultAuthorizer === undefined) {
+      console.warn(
+        "This will create an instance of htsget-rs that is public! Anyone will be able to query the server without authorization.",
+      );
+    }
+  }
+
+  /**
+   * Determine the correct features based on the locations.
+   */
+  private resolveFeatures(
+    config: HtsgetConfig,
+    bucket?: Bucket,
+    privateKey?: Secret,
+    publicKey?: Secret,
+  ): string {
+    const features = [];
+
+    if (
+      config.locations?.some((location) =>
+        location.location.startsWith("s3://"),
+      ) ||
+      bucket !== undefined
+    ) {
+      features.push("aws");
+    }
+    if (
+      config.locations?.some(
+        (location) =>
+          location.location.startsWith("http://") ||
+          location.location.startsWith("https://"),
+      )
+    ) {
+      features.push("url");
+    }
+    if (
+      config.locations?.some(
+        (location) =>
+          location.private_key !== undefined ||
+          location.public_key !== undefined,
+      ) ||
+      privateKey !== undefined ||
+      publicKey !== undefined
+    ) {
+      features.push("experimental");
+    }
+
+    return `--features ${features.join(",")}`;
   }
 
   /**
    * Create a bucket and copy test data if configured.
    */
-  private setupTestData(): [Bucket, Secret, Secret] {
+  private setupTestData(repoDir: string): [Bucket, Secret, Secret] {
     const bucket = new Bucket(this, "Bucket", {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       encryption: BucketEncryption.S3_MANAGED,
       enforceSSL: true,
-      removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.RETAIN,
     });
 
     // Copy data from upstream htsget repo
-    const localDataPath = path.join(tmpdir(), "htsget-rs");
+    const localDataPath = path.join(repoDir, "data");
+
+    const flattenDir = (...dirs: string[]) => {
+      dirs.forEach((d) => {
+        spawnSync("mv", [path.join(localDataPath, `${d}/*`), "."]);
+      });
+    };
+    flattenDir("bam", "cram", "vcf", "bcf");
 
     new BucketDeployment(this, "DeployFiles", {
       sources: [Source.asset(localDataPath)],
       destinationBucket: bucket,
     });
 
-    const keyDir = path.join(tmpdir(), "htsget-rs", "data", "c4gh", "keys");
+    const keyDir = path.join(repoDir, "data", "c4gh", "keys");
     const privateKey = new Secret(this, "PrivateKey", {
-      secretName: "htsget-rs/c4gh-private-key", // pragma: allowlist secret
       secretStringValue: SecretValue.unsafePlainText(
         readFileSync(path.join(keyDir, "bob.sec")).toString(),
       ),
       removalPolicy: RemovalPolicy.DESTROY,
     });
     const publicKey = new Secret(this, "PublicKey", {
-      secretName: "htsget-rs/c4gh-public-key", // pragma: allowlist secret
       secretStringValue: SecretValue.unsafePlainText(
         readFileSync(path.join(keyDir, "alice.pub")).toString(),
       ),
       removalPolicy: RemovalPolicy.DESTROY,
     });
 
-    new CfnOutput(this, "HtsgetBucketName", { value: bucket.bucketName });
+    new CfnOutput(this, "BucketName", { value: bucket.bucketName });
 
     return [bucket, privateKey, publicKey];
   }
@@ -209,8 +275,9 @@ export class HtsgetLambda extends Construct {
       ),
     );
 
+    const locations = config.locations ?? [];
     // Add any "s3://" locations to policy.
-    const buckets = config.locations.flatMap((location) => {
+    const buckets = locations.flatMap((location) => {
       if (location.location.startsWith("s3://")) {
         return [location.location.split("/")[2]];
       } else {
@@ -223,33 +290,40 @@ export class HtsgetLambda extends Construct {
 
     const bucketPolicy = new PolicyStatement({
       actions: ["s3:GetObject"],
-      resources: buckets ?? [],
+      resources: buckets.map((bucket) => `arn:aws:s3:::${bucket}/*`) ?? [],
     });
     if (bucketPolicy.resources.length !== 0) {
       lambdaRole.addToPolicy(bucketPolicy);
     }
 
     // Add any keys from the locations.
-    const keys = config.locations.flatMap((location) => {
-      const keys = [];
+    const keys = locations.flatMap((location) => {
+      const keys: [boolean, string][] = [];
       if (location.private_key !== undefined) {
-        keys.push(location.private_key);
+        keys.push([false, location.private_key]);
       }
       if (location.public_key !== undefined) {
-        keys.push(location.public_key);
+        keys.push([false, location.public_key]);
       }
       return keys;
     });
     if (privateKey !== undefined) {
-      keys.push(privateKey.secretArn);
+      keys.push([true, privateKey.secretArn]);
     }
     if (publicKey !== undefined) {
-      keys.push(publicKey.secretArn);
+      keys.push([true, publicKey.secretArn]);
     }
 
     const secretPolicy = new PolicyStatement({
       actions: ["secretsmanager:GetSecretValue"],
-      resources: keys ?? [],
+      resources:
+        keys.map(([arn, key]) => {
+          if (arn) {
+            return key;
+          } else {
+            return `arn:aws:secretsmanager:${Aws.REGION}:${Aws.ACCOUNT_ID}:secret:${key}-*`;
+          }
+        }) ?? [],
     });
     if (secretPolicy.resources.length !== 0) {
       lambdaRole.addToPolicy(secretPolicy);
@@ -283,23 +357,6 @@ export class HtsgetLambda extends Construct {
         {
           identitySource: ["$request.header.Authorization"],
           jwtAudience: jwtAuthorizer.jwtAudience ?? [],
-        },
-      );
-    } else {
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-      });
-
-      rl.question(
-        "This will create an instance of htsget-rs that is public! Anyone will be able to query the server without authorization. Continue? [y/n] ",
-        (answer) => {
-          switch (answer.toLowerCase()) {
-            case "y":
-              break;
-            default:
-              process.exit(0);
-          }
         },
       );
     }
@@ -362,37 +419,50 @@ export class HtsgetLambda extends Construct {
     privateKey?: Secret,
     publicKey?: Secret,
   ): { [key: string]: string } {
-    const toHtsgetEnv = (value: object) => {
-      return JSON.stringify(value).replaceAll('"', "").replaceAll(":", "=");
+    const toHtsgetEnv = (value: unknown) => {
+      return JSON.stringify(value)
+        .replaceAll(new RegExp(/"( )*:( )*/g), "=")
+        .replaceAll('"', "");
     };
 
     const out: { [key: string]: string | undefined } = {};
+    const locations = config.locations ?? [];
 
     if (bucket !== undefined) {
-      const location: HtsgetLocation = {
+      locations.push({
         location: `s3://${bucket.bucketName}`,
+      });
+      locations.push({
+        location: `s3://${bucket.bucketName}/c4gh`,
         private_key: privateKey?.secretArn,
         public_key: publicKey?.secretArn,
-      };
-      config.locations.push(location);
+      });
     }
 
-    let locations = config.locations
+    let locationsEnv = locations
       .map((location) => {
         return toHtsgetEnv({
           location: location.location,
-          key: {
-            kind: "SecretsManager",
-            private: location.private_key,
-            public: location.public_key,
-          },
+          ...(location.private_key !== undefined &&
+            location.public_key !== undefined && {
+              keys: {
+                kind: "SecretsManager",
+                private: location.private_key,
+                public: location.public_key,
+              },
+            }),
         });
       })
       .join(",");
-    locations = `[${locations}]`;
+    locationsEnv = `[${locationsEnv}]`;
 
-    out["HTSGET_LOCATIONS"] = locations;
+    if (locationsEnv == "[]") {
+      throw new Error(
+        "no locations configured, htsget-rs wouldn't be able to access any files!",
+      );
+    }
 
+    out["HTSGET_LOCATIONS"] = locationsEnv;
     out["HTSGET_TICKET_SERVER_CORS_ALLOW_CREDENTIALS"] =
       corsConfig?.allowCredentials?.toString();
     out["HTSGET_TICKET_SERVER_CORS_ALLOW_HEADERS"] =
@@ -413,13 +483,12 @@ export class HtsgetLambda extends Construct {
       );
     }
     for (const key in config.environment_override) {
-      out[`HTSGET_${key.toUpperCase()}`] = toHtsgetEnv(
-        config.environment_override[key],
-      );
+      out[key] = toHtsgetEnv(config.environment_override[key]);
     }
 
     Object.keys(out).forEach(
-      (key) => (out[key] === undefined || out[key] == null) && delete out[key],
+      (key) =>
+        (out[key] == `[${undefined}]` || out[key] == "[]") && delete out[key],
     );
     return out as { [key: string]: string };
   }
