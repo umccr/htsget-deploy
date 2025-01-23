@@ -35,14 +35,14 @@ export interface HtsgetLambdaProps {
    *
    * @defaultValue `undefined`, defaults to a public deployment
    */
-  jwtAuthorizer?: JwtAuthConfig;
+  jwt?: JwtConfig;
 
   /**
    * CORS configuration for the htsget-rs server.
    *
    * @defaultValue same as the `CorsConfig` defaults
    */
-  corsConfig?: CorsConifg;
+  cors?: CorsConifg;
 
   /**
    * The git reference to fetch from the htsget-rs repo.
@@ -104,13 +104,13 @@ export interface HtsgetLambdaProps {
 /**
  * JWT authorization settings.
  */
-export interface JwtAuthConfig {
+export interface JwtConfig {
   /**
    * The JWT audience.
    *
    * @defaultValue []
    */
-  jwtAudience?: string[];
+  audience?: string[];
 
   /**
    * The cognito user pool id for the authorizer. If this is not set, then a new user pool is created.

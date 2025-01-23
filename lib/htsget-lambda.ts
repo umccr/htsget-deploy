@@ -50,10 +50,9 @@ import {
   CorsConifg,
   HtsgetConfig,
   HtsgetLambdaProps,
-  JwtAuthConfig,
+  JwtConfig,
 } from "./config";
 import { getManifestPath } from "cargo-lambda-cdk/lib/cargo";
-import { spawnSync } from "node:child_process";
 
 /**
  * @ignore
@@ -106,8 +105,8 @@ export class HtsgetLambda extends Construct {
 
       httpApi = this.createHttpApi(
         props.domain,
-        props.jwtAuthorizer,
-        props.corsConfig,
+        props.jwt,
+        props.cors,
         props.subDomain,
       );
     }
@@ -138,7 +137,7 @@ export class HtsgetLambda extends Construct {
       environment: {
         ...this.configToEnv(
           props.htsgetConfig,
-          props.corsConfig,
+          props.cors,
           bucket,
           privateKey,
           publicKey,
@@ -223,16 +222,30 @@ export class HtsgetLambda extends Construct {
 
     // Copy data from upstream htsget repo
     const localDataPath = path.join(repoDir, "data");
-
-    const flattenDir = (...dirs: string[]) => {
-      dirs.forEach((d) => {
-        spawnSync("mv", [path.join(localDataPath, `${d}/*`), "."]);
-      });
-    };
-    flattenDir("bam", "cram", "vcf", "bcf");
+    //
+    // const flattenDir = (...dirs: string[]) => {
+    //   dirs.forEach((d) => {
+    //     console.log("mv", [path.join(localDataPath, `${d}/*`), localDataPath]);
+    //     const a = spawnSync("mv", ["-v", path.join(localDataPath, `${d}/*`), localDataPath], {
+    //       stdio: 'pipe',
+    //       encoding: 'utf-8'
+    //     });
+    //     console.log(a.output);
+    //   });
+    // };
+    // flattenDir("bam", "cram", "vcf", "bcf");
+    //
+    // console.log(localDataPath);
+    // throw Error();
 
     new BucketDeployment(this, "DeployFiles", {
-      sources: [Source.asset(localDataPath)],
+      sources: [
+        Source.asset(localDataPath),
+        Source.asset(path.join(localDataPath, "bam")),
+        Source.asset(path.join(localDataPath, "cram")),
+        Source.asset(path.join(localDataPath, "vcf")),
+        Source.asset(path.join(localDataPath, "bcf")),
+      ],
       destinationBucket: bucket,
     });
 
@@ -337,7 +350,7 @@ export class HtsgetLambda extends Construct {
    */
   private createHttpApi(
     domain: string,
-    jwtAuthorizer?: JwtAuthConfig,
+    jwtAuthorizer?: JwtConfig,
     config?: CorsConifg,
     subDomain?: string,
     hostedZone?: HostedZone,
@@ -356,7 +369,7 @@ export class HtsgetLambda extends Construct {
         `https://cognito-idp.${Stack.of(this).region}.amazonaws.com/${jwtAuthorizer.cogUserPoolId}`,
         {
           identitySource: ["$request.header.Authorization"],
-          jwtAudience: jwtAuthorizer.jwtAudience ?? [],
+          jwtAudience: jwtAuthorizer.audience ?? [],
         },
       );
     }
@@ -430,12 +443,12 @@ export class HtsgetLambda extends Construct {
 
     if (bucket !== undefined) {
       locations.push({
-        location: `s3://${bucket.bucketName}`,
-      });
-      locations.push({
         location: `s3://${bucket.bucketName}/c4gh`,
         private_key: privateKey?.secretArn,
         public_key: publicKey?.secretArn,
+      });
+      locations.push({
+        location: `s3://${bucket.bucketName}`,
       });
     }
 
