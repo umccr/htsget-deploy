@@ -427,12 +427,9 @@ export class HtsgetLambda extends Construct {
 
     if (bucket !== undefined) {
       locations.push({
-        location: `s3://${bucket.bucketName}/c4gh`,
+        location: `s3://${bucket.bucketName}`,
         private_key: privateKey?.secretArn,
         public_key: publicKey?.secretArn,
-      });
-      locations.push({
-        location: `s3://${bucket.bucketName}`,
       });
     }
 
