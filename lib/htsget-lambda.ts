@@ -222,25 +222,9 @@ export class HtsgetLambda extends Construct {
 
     // Copy data from upstream htsget repo
     const localDataPath = path.join(repoDir, "data");
-    //
-    // const flattenDir = (...dirs: string[]) => {
-    //   dirs.forEach((d) => {
-    //     console.log("mv", [path.join(localDataPath, `${d}/*`), localDataPath]);
-    //     const a = spawnSync("mv", ["-v", path.join(localDataPath, `${d}/*`), localDataPath], {
-    //       stdio: 'pipe',
-    //       encoding: 'utf-8'
-    //     });
-    //     console.log(a.output);
-    //   });
-    // };
-    // flattenDir("bam", "cram", "vcf", "bcf");
-    //
-    // console.log(localDataPath);
-    // throw Error();
-
     new BucketDeployment(this, "DeployFiles", {
       sources: [
-        Source.asset(localDataPath),
+        Source.asset(path.join(localDataPath, "c4gh")),
         Source.asset(path.join(localDataPath, "bam")),
         Source.asset(path.join(localDataPath, "cram")),
         Source.asset(path.join(localDataPath, "vcf")),
