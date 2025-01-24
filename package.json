@@ -3,19 +3,20 @@
     "htsget_app": "bin/htsget-lambda.js"
   },
   "dependencies": {
-    "@iarna/toml": "^3.0.0",
     "cargo-lambda-cdk": "^0.0.31"
   },
   "devDependencies": {
+    "@eslint/js": "^9.18.0",
     "@types/node": "22.8.4",
     "aws-cdk": "2.112.0",
-    "prettier": "3.4.2",
-    "typescript": "5.6.3",
+    "aws-cdk-lib": "2.112.0",
     "constructs": "10.4.2",
-    "aws-cdk-lib": "2.112.0"
-  },
-  "peerDependencies": {
-    "aws-cdk-lib": "^2.112.0"
+    "eslint": "^9.18.0",
+    "prettier": "^3.4.2",
+    "typedoc": "^0.27.6",
+    "typedoc-plugin-markdown": "^4.4.1",
+    "typescript": "5.6.3",
+    "typescript-eslint": "^8.20.0"
   },
   "files": [
     "./**/*.d.ts",
@@ -24,12 +25,16 @@
   "license": "MIT",
   "name": "htsget-lambda",
   "packageManager": "pnpm@9.14.0",
+  "peerDependencies": {
+    "aws-cdk-lib": "^2.112.0"
+  },
   "scripts": {
     "build": "tsc",
     "cdk": "cdk",
     "prettier": "prettier",
     "run": "cdk deploy",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "typedoc": "typedoc"
   },
   "version": "0.7.2"
 }
