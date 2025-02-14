@@ -52,6 +52,14 @@ export interface HtsgetLambdaProps {
   gitReference?: string;
 
   /**
+   * Whether to force a git clone for every build. If this is false, then the git repo is only cloned once
+   * for every git reference in a temporary directory. Otherwise, the repo is cloned every time.
+   *
+   * @defaultValue false
+   */
+  gitForceClone?: boolean;
+
+  /**
    * Override any cargo lambda flags for the build. By default, features are resolved automatically based on the
    * config and `HtsgetLocation[]`. This option overrides that and any automatically added flags.
    *

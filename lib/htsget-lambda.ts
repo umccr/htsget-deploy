@@ -113,7 +113,7 @@ export class HtsgetLambda extends Construct {
 
     const htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
-      gitForceClone: false,
+      gitForceClone: props.gitForceClone,
       gitReference: props.gitReference,
       manifestPath: path.join(repoDir, "Cargo.toml"),
       binaryName: "htsget-lambda",
