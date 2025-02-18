@@ -466,7 +466,11 @@ export class HtsgetLambda extends Construct {
       .join(",");
     locationsEnv = `[${locationsEnv}]`;
 
-    if (locationsEnv == "[]") {
+    if (
+      locationsEnv == "[]" &&
+      (config.environment_override === undefined ||
+        config.environment_override["HTSGET_LOCATIONS"] === undefined)
+    ) {
       throw new Error(
         "no locations configured, htsget-rs wouldn't be able to access any files!",
       );
