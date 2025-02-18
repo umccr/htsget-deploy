@@ -222,7 +222,9 @@ export class HtsgetLambda extends Construct {
       features.push("experimental");
     }
 
-    return `--features ${features.join(",")}`;
+    return features.length === 0
+      ? "--all-features"
+      : `--features ${features.join(",")}`;
   }
 
   /**
