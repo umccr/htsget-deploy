@@ -70,7 +70,7 @@ export class HtsgetLambda extends Construct {
 
     const manifestPath = getManifestPath({
       gitRemote: "https://github.com/umccr/htsget-rs",
-      gitForceClone: true,
+      gitForceClone: props.gitForceClone,
       gitReference: props.gitReference,
     });
     const repoDir = path.dirname(manifestPath);
