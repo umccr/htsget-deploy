@@ -1,4 +1,6 @@
 import { readFileSync } from "fs";
+import { join } from "node:path";
+import { tmpdir } from "os";
 
 import {
   Aws,
@@ -53,6 +55,7 @@ import {
   JwtConfig,
 } from "./config";
 import { getManifestPath } from "cargo-lambda-cdk/lib/cargo";
+import { exec } from "cargo-lambda-cdk/lib/util";
 
 /**
  * @ignore
@@ -68,10 +71,23 @@ export class HtsgetLambda extends Construct {
       };
     }
 
+    const gitRemote = "https://github.com/umccr/htsget-rs";
+    const gitReference = props.gitReference;
+    const latestCommit = exec("git", [
+      "ls-remote",
+      gitRemote,
+      gitReference || "HEAD",
+    ])
+      .stdout.toString()
+      .split(/(\s+)/)[0];
+
+    const localPath = join(tmpdir(), latestCommit);
+
     const manifestPath = getManifestPath({
-      gitRemote: "https://github.com/umccr/htsget-rs",
+      manifestPath: join(localPath, "Cargo.toml"),
+      gitRemote,
       gitForceClone: props.gitForceClone,
-      gitReference: props.gitReference,
+      gitReference,
     });
     const repoDir = path.dirname(manifestPath);
 
