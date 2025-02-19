@@ -1,4 +1,4 @@
-import { readFileSync, mkdirSync } from "fs";
+import { readFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "node:path";
 import { tmpdir } from "os";
 
@@ -87,10 +87,12 @@ export class HtsgetLambda extends Construct {
     }
 
     args.push(gitRemote, localPath);
-    exec("git", args);
+    if (!existsSync(localPath)) {
+      exec("git", args);
 
-    if (gitReference !== "HEAD") {
-      exec("git", ["checkout", gitReference], { cwd: localPath });
+      if (gitReference !== "HEAD") {
+        exec("git", ["checkout", gitReference], { cwd: localPath });
+      }
     }
 
     const manifestPath = getManifestPath({
