@@ -79,8 +79,6 @@ export class HtsgetLambda extends Construct {
 
     const localPath = join(tmpdir(), latestCommit);
 
-    mkdirSync(localPath, { recursive: true });
-
     const args = ["clone"];
     if (gitReference === "HEAD") {
       args.push("--depth", "1");
@@ -88,6 +86,8 @@ export class HtsgetLambda extends Construct {
 
     args.push(gitRemote, localPath);
     if (!existsSync(localPath)) {
+      mkdirSync(localPath, { recursive: true });
+
       exec("git", args);
 
       if (gitReference !== "HEAD") {
