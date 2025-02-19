@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, mkdirSync } from "fs";
 import { join } from "node:path";
 import { tmpdir } from "os";
 
@@ -72,16 +72,26 @@ export class HtsgetLambda extends Construct {
     }
 
     const gitRemote = "https://github.com/umccr/htsget-rs";
-    const gitReference = props.gitReference;
-    const latestCommit = exec("git", [
-      "ls-remote",
-      gitRemote,
-      gitReference || "HEAD",
-    ])
+    const gitReference = props.gitReference || "HEAD";
+    const latestCommit = exec("git", ["ls-remote", gitRemote, gitReference])
       .stdout.toString()
       .split(/(\s+)/)[0];
 
     const localPath = join(tmpdir(), latestCommit);
+
+    mkdirSync(localPath, { recursive: true });
+
+    const args = ["clone"];
+    if (gitReference === "HEAD") {
+      args.push("--depth", "1");
+    }
+
+    args.push(gitRemote, localPath);
+    exec("git", args);
+
+    if (gitReference !== "HEAD") {
+      exec("git", ["checkout", gitReference], { cwd: localPath });
+    }
 
     const manifestPath = getManifestPath({
       manifestPath: join(localPath, "Cargo.toml"),
