@@ -3,20 +3,20 @@
     "htsget_app": "bin/htsget-lambda.js"
   },
   "dependencies": {
-    "cargo-lambda-cdk": "^0.0.31"
+    "cargo-lambda-cdk": "^0.0.33"
   },
   "devDependencies": {
-    "@eslint/js": "^9.18.0",
-    "@types/node": "22.8.4",
+    "@eslint/js": "^9.27.0",
+    "@types/node": "22.15.19",
     "aws-cdk": "2.112.0",
     "aws-cdk-lib": "2.112.0",
     "constructs": "10.4.2",
-    "eslint": "^9.18.0",
-    "prettier": "^3.4.2",
-    "typedoc": "^0.27.6",
-    "typedoc-plugin-markdown": "^4.4.1",
-    "typescript": "5.6.3",
-    "typescript-eslint": "^8.20.0"
+    "eslint": "^9.27.0",
+    "prettier": "^3.5.3",
+    "typedoc": "^0.28.4",
+    "typedoc-plugin-markdown": "^4.6.3",
+    "typescript": "5.8.3",
+    "typescript-eslint": "^8.32.1"
   },
   "files": [
     "./**/*.d.ts",

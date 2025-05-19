@@ -1,4 +1,4 @@
-import { readFileSync, mkdirSync, existsSync } from "fs";
+import { readFileSync } from "fs";
 import { join } from "node:path";
 import { tmpdir } from "os";
 
@@ -14,7 +14,6 @@ import { Construct } from "constructs";
 
 import { UserPool } from "aws-cdk-lib/aws-cognito";
 import {
-  IRole,
   ManagedPolicy,
   PolicyStatement,
   Role,
@@ -58,7 +57,6 @@ import {
   HtsgetLambdaProps,
   JwtConfig,
 } from "./config";
-import { getManifestPath } from "cargo-lambda-cdk/lib/cargo";
 import { exec } from "cargo-lambda-cdk/lib/util";
 
 /**
@@ -73,58 +71,6 @@ export class HtsgetLambda extends Construct {
       props.htsgetConfig = {
         locations: [],
       };
-    }
-
-    const gitRemote = "https://github.com/umccr/htsget-rs";
-    const gitReference = props.gitReference || "HEAD";
-    const latestCommit = exec("git", ["ls-remote", gitRemote, gitReference])
-      .stdout.toString()
-      .split(/(\s+)/)[0];
-
-    const localPath = join(tmpdir(), latestCommit);
-
-    const args = ["clone"];
-    if (gitReference === "HEAD") {
-      args.push("--depth", "1");
-    }
-
-    args.push(gitRemote, localPath);
-    if (!existsSync(localPath)) {
-      mkdirSync(localPath, { recursive: true });
-
-      exec("git", args);
-
-      if (gitReference !== "HEAD") {
-        exec("git", ["checkout", gitReference], { cwd: localPath });
-      }
-    }
-
-    const manifestPath = getManifestPath({
-      manifestPath: join(localPath, "Cargo.toml"),
-      gitRemote,
-      gitForceClone: props.gitForceClone,
-      gitReference,
-    });
-    const repoDir = path.dirname(manifestPath);
-
-    let bucket: Bucket | undefined = undefined;
-    let privateKey: Secret | undefined = undefined;
-    let publicKey: Secret | undefined = undefined;
-    if (props.copyTestData) {
-      [bucket, privateKey, publicKey] = this.setupTestData(repoDir);
-    }
-
-    let lambdaRole: IRole;
-    if (props.role !== undefined) {
-      lambdaRole = props.role;
-    } else {
-      lambdaRole = this.createRole(
-        id,
-        props.htsgetConfig,
-        bucket,
-        privateKey,
-        publicKey,
-      );
     }
 
     let httpApi: IHttpApi;
@@ -144,11 +90,15 @@ export class HtsgetLambda extends Construct {
       );
     }
 
+    let lambdaRole: Role | undefined;
+    if (props.role == undefined) {
+      lambdaRole = this.createRole(id);
+    }
+
     const htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
       gitForceClone: props.gitForceClone,
       gitReference: props.gitReference,
-      manifestPath: path.join(repoDir, "Cargo.toml"),
       binaryName: "htsget-lambda",
       bundling: {
         environment: {
@@ -157,30 +107,44 @@ export class HtsgetLambda extends Construct {
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
         },
         cargoLambdaFlags: props.cargoLambdaFlags ?? [
-          this.resolveFeatures(
-            props.htsgetConfig,
-            bucket,
-            privateKey,
-            publicKey,
-          ),
+          this.resolveFeatures(props.htsgetConfig, props.copyTestData ?? false),
         ],
       },
       memorySize: 128,
       timeout: Duration.seconds(28),
-      environment: {
-        ...this.configToEnv(
-          props.htsgetConfig,
-          props.cors,
-          bucket,
-          privateKey,
-          publicKey,
-        ),
-        RUST_LOG: "trace",
-      },
       architecture: Architecture.ARM_64,
-      role: lambdaRole,
+      role: lambdaRole ?? props.role,
       vpc: props.vpc,
     });
+
+    let bucket: Bucket | undefined = undefined;
+    let privateKey: Secret | undefined = undefined;
+    let publicKey: Secret | undefined = undefined;
+    if (props.copyTestData) {
+      [bucket, privateKey, publicKey] = this.setupTestData();
+    }
+
+    if (lambdaRole !== undefined) {
+      this.setPermissions(
+        lambdaRole,
+        props.htsgetConfig,
+        bucket,
+        privateKey,
+        publicKey,
+      );
+    }
+
+    const env = this.configToEnv(
+      props.htsgetConfig,
+      props.cors,
+      bucket,
+      privateKey,
+      publicKey,
+    );
+    for (const key in env) {
+      htsgetLambda.addEnvironment(key, env[key]);
+    }
+    htsgetLambda.addEnvironment("RUST_LOG", "trace");
 
     const httpIntegration = new HttpLambdaIntegration(
       "Integration",
@@ -206,19 +170,14 @@ export class HtsgetLambda extends Construct {
   /**
    * Determine the correct features based on the locations.
    */
-  private resolveFeatures(
-    config: HtsgetConfig,
-    bucket?: Bucket,
-    privateKey?: Secret,
-    publicKey?: Secret,
-  ): string {
+  private resolveFeatures(config: HtsgetConfig, bucketSetup: boolean): string {
     const features = [];
 
     if (
       config.locations?.some((location) =>
         location.location.startsWith("s3://"),
       ) ||
-      bucket !== undefined
+      bucketSetup
     ) {
       features.push("aws");
     }
@@ -237,8 +196,7 @@ export class HtsgetLambda extends Construct {
           location.private_key !== undefined ||
           location.public_key !== undefined,
       ) ||
-      privateKey !== undefined ||
-      publicKey !== undefined
+      bucketSetup
     ) {
       features.push("experimental");
     }
@@ -251,7 +209,17 @@ export class HtsgetLambda extends Construct {
   /**
    * Create a bucket and copy test data if configured.
    */
-  private setupTestData(repoDir: string): [Bucket, Secret, Secret] {
+  private setupTestData(gitReference?: string): [Bucket, Secret, Secret] {
+    const gitRemote = "https://github.com/umccr/htsget-rs";
+    const latestCommit = exec("git", [
+      "ls-remote",
+      gitRemote,
+      gitReference || "HEAD",
+    ])
+      .stdout.toString()
+      .split(/(\s+)/)[0];
+    const localPath = join(tmpdir(), latestCommit);
+
     const bucket = new Bucket(this, "Bucket", {
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       encryption: BucketEncryption.S3_MANAGED,
@@ -260,7 +228,7 @@ export class HtsgetLambda extends Construct {
     });
 
     // Copy data from upstream htsget repo
-    const localDataPath = path.join(repoDir, "data");
+    const localDataPath = path.join(localPath, "data");
     new BucketDeployment(this, "DeployFiles", {
       sources: [
         Source.asset(path.join(localDataPath, "c4gh")),
@@ -272,7 +240,7 @@ export class HtsgetLambda extends Construct {
       destinationBucket: bucket,
     });
 
-    const keyDir = path.join(repoDir, "data", "c4gh", "keys");
+    const keyDir = path.join(localPath, "data", "c4gh", "keys");
     const privateKey = new Secret(this, "PrivateKey", {
       secretStringValue: SecretValue.unsafePlainText(
         readFileSync(path.join(keyDir, "bob.sec")).toString(),
@@ -292,20 +260,16 @@ export class HtsgetLambda extends Construct {
   }
 
   /**
-   * Creates a lambda role with the configured permissions.
+   * Set permissions for the Lambda role.
    */
-  private createRole(
-    id: string,
+  private setPermissions(
+    role: Role,
     config: HtsgetConfig,
     bucket?: Bucket,
     privateKey?: Secret,
     publicKey?: Secret,
-  ): Role {
-    const lambdaRole = new Role(this, "Role", {
-      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-      description: "Lambda execution role for " + id,
-    });
-    lambdaRole.addManagedPolicy(
+  ) {
+    role.addManagedPolicy(
       ManagedPolicy.fromAwsManagedPolicyName(
         "service-role/AWSLambdaBasicExecutionRole",
       ),
@@ -329,7 +293,7 @@ export class HtsgetLambda extends Construct {
       resources: buckets.map((bucket) => `arn:aws:s3:::${bucket}/*`),
     });
     if (bucketPolicy.resources.length !== 0) {
-      lambdaRole.addToPolicy(bucketPolicy);
+      role.addToPolicy(bucketPolicy);
     }
 
     // Add any keys from the locations.
@@ -361,10 +325,18 @@ export class HtsgetLambda extends Construct {
       }),
     });
     if (secretPolicy.resources.length !== 0) {
-      lambdaRole.addToPolicy(secretPolicy);
+      role.addToPolicy(secretPolicy);
     }
+  }
 
-    return lambdaRole;
+  /**
+   * Creates a lambda role with the configured permissions.
+   */
+  private createRole(id: string): Role {
+    return new Role(this, "Role", {
+      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+      description: "Lambda execution role for " + id,
+    });
   }
 
   /**
