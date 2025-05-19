@@ -1,8 +1,8 @@
 import { IVpc } from "aws-cdk-lib/aws-ec2";
-import { CorsHttpMethod, HttpApi } from "aws-cdk-lib/aws-apigatewayv2";
-import { Role } from "aws-cdk-lib/aws-iam";
+import { CorsHttpMethod, IHttpApi } from "aws-cdk-lib/aws-apigatewayv2";
+import { IRole } from "aws-cdk-lib/aws-iam";
 import { Duration } from "aws-cdk-lib";
-import { HostedZone } from "aws-cdk-lib/aws-route53";
+import { IHostedZone } from "aws-cdk-lib/aws-route53";
 
 /**
  * Settings related to the htsget lambda construct props.
@@ -91,14 +91,14 @@ export interface HtsgetLambdaProps {
    *
    * @defaultValue undefined
    */
-  httpApi?: HttpApi;
+  httpApi?: IHttpApi;
 
   /**
    * Use the provided hosted zone instead of looking it up from the domain name.
    *
    * @defaultValue undefined
    */
-  hostedZone?: HostedZone;
+  hostedZone?: IHostedZone;
 
   /**
    * Use the provided role instead of creating one. This will ignore any configuration related to permissions for
@@ -106,7 +106,7 @@ export interface HtsgetLambdaProps {
    *
    * @defaultValue undefined
    */
-  role?: Role;
+  role?: IRole;
 }
 
 /**
