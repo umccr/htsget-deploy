@@ -14,6 +14,7 @@ import { Construct } from "constructs";
 
 import { UserPool } from "aws-cdk-lib/aws-cognito";
 import {
+  IRole,
   ManagedPolicy,
   PolicyStatement,
   Role,
@@ -39,6 +40,9 @@ import {
   DomainName,
   HttpApi,
   HttpMethod,
+  HttpRoute,
+  HttpRouteKey,
+  IHttpApi,
 } from "aws-cdk-lib/aws-apigatewayv2";
 import { HttpJwtAuthorizer } from "aws-cdk-lib/aws-apigatewayv2-authorizers";
 import {
@@ -110,7 +114,7 @@ export class HtsgetLambda extends Construct {
       [bucket, privateKey, publicKey] = this.setupTestData(repoDir);
     }
 
-    let lambdaRole: Role;
+    let lambdaRole: IRole;
     if (props.role !== undefined) {
       lambdaRole = props.role;
     } else {
@@ -123,7 +127,7 @@ export class HtsgetLambda extends Construct {
       );
     }
 
-    let httpApi: HttpApi;
+    let httpApi: IHttpApi;
     if (props.httpApi !== undefined) {
       httpApi = props.httpApi;
     } else {
@@ -136,6 +140,7 @@ export class HtsgetLambda extends Construct {
         props.jwt,
         props.cors,
         props.subDomain,
+        props.hostedZone,
       );
     }
 
@@ -181,10 +186,14 @@ export class HtsgetLambda extends Construct {
       "Integration",
       htsgetLambda,
     );
-    httpApi.addRoutes({
-      path: "/{proxy+}",
-      methods: [HttpMethod.GET, HttpMethod.POST],
-      integration: httpIntegration,
+
+    [HttpMethod.GET, HttpMethod.POST].map((method) => {
+      const path = "/{proxy+}";
+      new HttpRoute(this, `${method}${path}`, {
+        httpApi: httpApi,
+        routeKey: HttpRouteKey.with(path, method),
+        integration: httpIntegration,
+      });
     });
 
     if (httpApi.defaultAuthorizer === undefined) {
@@ -366,7 +375,7 @@ export class HtsgetLambda extends Construct {
     jwtAuthorizer?: JwtConfig,
     config?: CorsConifg,
     subDomain?: string,
-    hostedZone?: HostedZone,
+    hostedZone?: IHostedZone,
   ): HttpApi {
     // Add an authorizer if auth is required.
     let authorizer: HttpJwtAuthorizer | undefined = undefined;
