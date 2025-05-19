@@ -317,7 +317,7 @@ export class HtsgetLambda extends Construct {
 
     const bucketPolicy = new PolicyStatement({
       actions: ["s3:GetObject"],
-      resources: buckets.map((bucket) => `arn:aws:s3:::${bucket}/*`) ?? [],
+      resources: buckets.map((bucket) => `arn:aws:s3:::${bucket}/*`),
     });
     if (bucketPolicy.resources.length !== 0) {
       lambdaRole.addToPolicy(bucketPolicy);
@@ -343,14 +343,13 @@ export class HtsgetLambda extends Construct {
 
     const secretPolicy = new PolicyStatement({
       actions: ["secretsmanager:GetSecretValue"],
-      resources:
-        keys.map(([arn, key]) => {
-          if (arn) {
-            return key;
-          } else {
-            return `arn:aws:secretsmanager:${Aws.REGION}:${Aws.ACCOUNT_ID}:secret:${key}-*`;
-          }
-        }) ?? [],
+      resources: keys.map(([arn, key]) => {
+        if (arn) {
+          return key;
+        } else {
+          return `arn:aws:secretsmanager:${Aws.REGION}:${Aws.ACCOUNT_ID}:secret:${key}-*`;
+        }
+      }),
     });
     if (secretPolicy.resources.length !== 0) {
       lambdaRole.addToPolicy(secretPolicy);
@@ -494,13 +493,13 @@ export class HtsgetLambda extends Construct {
     out["HTSGET_TICKET_SERVER_CORS_ALLOW_CREDENTIALS"] =
       corsConfig?.allowCredentials?.toString();
     out["HTSGET_TICKET_SERVER_CORS_ALLOW_HEADERS"] =
-      `[${corsConfig?.allowHeaders?.join(",")}]`;
+      `[${corsConfig?.allowHeaders?.join(",") as string}]`;
     out["HTSGET_TICKET_SERVER_CORS_ALLOW_METHODS"] =
-      `[${corsConfig?.allowMethods?.join(",")}]`;
+      `[${corsConfig?.allowMethods?.join(",") as string}]`;
     out["HTSGET_TICKET_SERVER_CORS_ALLOW_ORIGINS"] =
-      `[${corsConfig?.allowOrigins?.join(",")}]`;
+      `[${corsConfig?.allowOrigins?.join(",") as string}]`;
     out["HTSGET_TICKET_SERVER_CORS_EXPOSE_HEADERS"] =
-      `[${corsConfig?.exposeHeaders?.join(",")}]`;
+      `[${corsConfig?.exposeHeaders?.join(",") as string}]`;
     out["HTSGET_TICKET_SERVER_CORS_MAX_AGE"] = corsConfig?.maxAge
       ?.toSeconds()
       .toString();
@@ -516,7 +515,8 @@ export class HtsgetLambda extends Construct {
 
     Object.keys(out).forEach(
       (key) =>
-        (out[key] == `[${undefined}]` || out[key] == "[]") && delete out[key],
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        (out[key] == `[undefined]` || out[key] == "[]") && delete out[key],
     );
     return out as { [key: string]: string };
   }
