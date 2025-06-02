@@ -67,11 +67,9 @@ export class HtsgetLambda extends Construct {
   constructor(scope: Construct, id: string, props: HtsgetLambdaProps) {
     super(scope, id);
 
-    if (props.htsgetConfig == undefined) {
-      props.htsgetConfig = {
-        locations: [],
-      };
-    }
+    props.htsgetConfig ??= {
+      locations: [],
+    };
 
     let httpApi: IHttpApi;
     if (props.httpApi !== undefined) {
@@ -95,6 +93,8 @@ export class HtsgetLambda extends Construct {
       lambdaRole = this.createRole(id);
     }
 
+    props.buildEnvironment ??= {};
+
     const htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
       gitForceClone: props.gitForceClone,
@@ -105,6 +105,7 @@ export class HtsgetLambda extends Construct {
           RUSTFLAGS: "-C target-cpu=neoverse-n1",
           CARGO_PROFILE_RELEASE_LTO: "true",
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
+          ...props.buildEnvironment,
         },
         cargoLambdaFlags: props.cargoLambdaFlags ?? [
           this.resolveFeatures(props.htsgetConfig, props.copyTestData ?? false),
@@ -214,7 +215,7 @@ export class HtsgetLambda extends Construct {
     const latestCommit = exec("git", [
       "ls-remote",
       gitRemote,
-      gitReference || "HEAD",
+      gitReference ?? "HEAD",
     ])
       .stdout.toString()
       .split(/(\s+)/)[0];
@@ -425,14 +426,14 @@ export class HtsgetLambda extends Construct {
     bucket?: Bucket,
     privateKey?: Secret,
     publicKey?: Secret,
-  ): { [key: string]: string } {
+  ): Record<string, string> {
     const toHtsgetEnv = (value: unknown) => {
       return JSON.stringify(value)
         .replaceAll(new RegExp(/"( )*:( )*/g), "=")
         .replaceAll('"', "");
     };
 
-    const out: { [key: string]: string | undefined } = {};
+    const out: Record<string, string | undefined> = {};
     const locations = config.locations ?? [];
 
     if (bucket !== undefined) {
@@ -463,25 +464,25 @@ export class HtsgetLambda extends Construct {
     if (
       locationsEnv == "[]" &&
       (config.environment_override === undefined ||
-        config.environment_override["HTSGET_LOCATIONS"] === undefined)
+        config.environment_override.HTSGET_LOCATIONS === undefined)
     ) {
       throw new Error(
         "no locations configured, htsget-rs wouldn't be able to access any files!",
       );
     }
 
-    out["HTSGET_LOCATIONS"] = locationsEnv;
-    out["HTSGET_TICKET_SERVER_CORS_ALLOW_CREDENTIALS"] =
+    out.HTSGET_LOCATIONS = locationsEnv;
+    out.HTSGET_TICKET_SERVER_CORS_ALLOW_CREDENTIALS =
       corsConfig?.allowCredentials?.toString();
-    out["HTSGET_TICKET_SERVER_CORS_ALLOW_HEADERS"] =
-      `[${corsConfig?.allowHeaders?.join(",") as string}]`;
-    out["HTSGET_TICKET_SERVER_CORS_ALLOW_METHODS"] =
-      `[${corsConfig?.allowMethods?.join(",") as string}]`;
-    out["HTSGET_TICKET_SERVER_CORS_ALLOW_ORIGINS"] =
-      `[${corsConfig?.allowOrigins?.join(",") as string}]`;
-    out["HTSGET_TICKET_SERVER_CORS_EXPOSE_HEADERS"] =
-      `[${corsConfig?.exposeHeaders?.join(",") as string}]`;
-    out["HTSGET_TICKET_SERVER_CORS_MAX_AGE"] = corsConfig?.maxAge
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    out.HTSGET_TICKET_SERVER_CORS_ALLOW_HEADERS = `[${corsConfig?.allowHeaders?.join(",") as string}]`;
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    out.HTSGET_TICKET_SERVER_CORS_ALLOW_METHODS = `[${corsConfig?.allowMethods?.join(",") as string}]`;
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    out.HTSGET_TICKET_SERVER_CORS_ALLOW_ORIGINS = `[${corsConfig?.allowOrigins?.join(",") as string}]`;
+    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+    out.HTSGET_TICKET_SERVER_CORS_EXPOSE_HEADERS = `[${corsConfig?.exposeHeaders?.join(",") as string}]`;
+    out.HTSGET_TICKET_SERVER_CORS_MAX_AGE = corsConfig?.maxAge
       ?.toSeconds()
       .toString();
 
@@ -499,6 +500,6 @@ export class HtsgetLambda extends Construct {
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         (out[key] == `[undefined]` || out[key] == "[]") && delete out[key],
     );
-    return out as { [key: string]: string };
+    return out as Record<string, string>;
   }
 }
