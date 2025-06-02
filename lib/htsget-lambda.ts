@@ -95,6 +95,10 @@ export class HtsgetLambda extends Construct {
       lambdaRole = this.createRole(id);
     }
 
+    if (props.buildEnvironment === undefined) {
+      props.buildEnvironment = {};
+    }
+
     const htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
       gitForceClone: props.gitForceClone,
@@ -105,6 +109,7 @@ export class HtsgetLambda extends Construct {
           RUSTFLAGS: "-C target-cpu=neoverse-n1",
           CARGO_PROFILE_RELEASE_LTO: "true",
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
+          ...props.buildEnvironment,
         },
         cargoLambdaFlags: props.cargoLambdaFlags ?? [
           this.resolveFeatures(props.htsgetConfig, props.copyTestData ?? false),

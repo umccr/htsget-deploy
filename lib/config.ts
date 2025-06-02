@@ -107,6 +107,13 @@ export interface HtsgetLambdaProps {
    * @defaultValue undefined
    */
   role?: IRole;
+
+  /**
+   * Override the enviornment used to build htsget.
+   *
+   * @defaultValue undefined
+   */
+  buildEnvironment?: Record<string, string>;
 }
 
 /**
