@@ -6,7 +6,7 @@
 
 ## CorsConifg
 
-Defined in: [lib/config.ts:141](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L141)
+Defined in: [lib/config.ts:144](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L144)
 
 CORS configuration for the htsget-rs server.
 
@@ -14,18 +14,18 @@ CORS configuration for the htsget-rs server.
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="allowcredentials"></a> `allowCredentials?` | `boolean` | `false` | CORS allow credentials. | [lib/config.ts:147](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L147) |
-| <a id="allowheaders"></a> `allowHeaders?` | `string`[] | `["*"]` | CORS allow headers. | [lib/config.ts:154](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L154) |
-| <a id="allowmethods"></a> `allowMethods?` | `CorsHttpMethod`[] | `[CorsHttpMethod.ANY]` | CORS allow methods. | [lib/config.ts:161](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L161) |
-| <a id="alloworigins"></a> `allowOrigins?` | `string`[] | `["*"]` | CORS allow origins. | [lib/config.ts:168](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L168) |
-| <a id="exposeheaders"></a> `exposeHeaders?` | `string`[] | `["*"]` | CORS expose headers. | [lib/config.ts:175](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L175) |
-| <a id="maxage"></a> `maxAge?` | `Duration` | `Duration.days(30)` | CORS max age. | [lib/config.ts:182](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L182) |
+| <a id="allowcredentials"></a> `allowCredentials?` | `boolean` | `false` | CORS allow credentials. | [lib/config.ts:150](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L150) |
+| <a id="allowheaders"></a> `allowHeaders?` | `string`[] | `["*"]` | CORS allow headers. | [lib/config.ts:157](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L157) |
+| <a id="allowmethods"></a> `allowMethods?` | `CorsHttpMethod`[] | `[CorsHttpMethod.ANY]` | CORS allow methods. | [lib/config.ts:164](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L164) |
+| <a id="alloworigins"></a> `allowOrigins?` | `string`[] | `["*"]` | CORS allow origins. | [lib/config.ts:171](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L171) |
+| <a id="exposeheaders"></a> `exposeHeaders?` | `string`[] | `["*"]` | CORS expose headers. | [lib/config.ts:178](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L178) |
+| <a id="maxage"></a> `maxAge?` | `Duration` | `Duration.days(30)` | CORS max age. | [lib/config.ts:185](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L185) |
 
 ***
 
 ## HtsgetConfig
 
-Defined in: [lib/config.ts:189](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L189)
+Defined in: [lib/config.ts:192](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L192)
 
 Configuration for the htsget-rs server. This allows specifying the options
 available in the htsget-rs config: https://github.com/umccr/htsget-rs/tree/main/htsget-config
@@ -34,9 +34,9 @@ available in the htsget-rs config: https://github.com/umccr/htsget-rs/tree/main/
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="environment_override"></a> `environment_override?` | `Record`\<`string`, `unknown`\> | `undefined` | Any additional htsget-rs options can be specified here as environment variables. These will override any options set in this construct, and allows using advanced configuration. Options here should contain the `HTSGET_` prefix. | [lib/config.ts:215](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L215) |
-| <a id="locations"></a> `locations?` | [`HtsgetLocation`](#htsgetlocation)[] | `[]` | The locations for the htsget-rs server. This is the same as the htsget-rs config locations: https://github.com/umccr/htsget-rs/tree/main/htsget-config#quickstart Any `s3://...` locations will automatically be added to the bucket access policy. | [lib/config.ts:198](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L198) |
-| <a id="service_info"></a> `service_info?` | `Record`\<`string`, `unknown`\> | `undefined` | Service info fields to configure for the server. This is the same as the htsget-rs config service_info: https://github.com/umccr/htsget-rs/tree/main/htsget-config#service-info-config | [lib/config.ts:206](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L206) |
+| <a id="environment_override"></a> `environment_override?` | `Record`\<`string`, `unknown`\> | `undefined` | Any additional htsget-rs options can be specified here as environment variables. These will override any options set in this construct, and allows using advanced configuration. Options here should contain the `HTSGET_` prefix. | [lib/config.ts:218](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L218) |
+| <a id="locations"></a> `locations?` | [`HtsgetLocation`](#htsgetlocation)[] | `[]` | The locations for the htsget-rs server. This is the same as the htsget-rs config locations: https://github.com/umccr/htsget-rs/tree/main/htsget-config#quickstart Any `s3://...` locations will automatically be added to the bucket access policy. | [lib/config.ts:201](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L201) |
+| <a id="service_info"></a> `service_info?` | `Record`\<`string`, `unknown`\> | `undefined` | Service info fields to configure for the server. This is the same as the htsget-rs config service_info: https://github.com/umccr/htsget-rs/tree/main/htsget-config#service-info-config | [lib/config.ts:209](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L209) |
 
 ***
 
@@ -50,7 +50,7 @@ Settings related to the htsget lambda construct props.
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="buildenvironment"></a> `buildEnvironment?` | `Record`\<`string`, `string`\> | `undefined` | Override the enviornment used to build htsget. | [lib/config.ts:116](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L116) |
+| <a id="buildenvironment"></a> `buildEnvironment?` | `Record`\<`string`, `string`\> | `undefined` | Override the environment variables used to build htsget. Note that this only adds environment variables that get used to build htsget-rs with `cargo`. It has no effect on the environment variables that htsget-rs has when the Lambda function is deployed. In general, leave this undefined unless there is a specific reason to override the build environment. | [lib/config.ts:119](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L119) |
 | <a id="cargolambdaflags"></a> `cargoLambdaFlags?` | `string`[] | `undefined` | Override any cargo lambda flags for the build. By default, features are resolved automatically based on the config and `HtsgetLocation[]`. This option overrides that and any automatically added flags. | [lib/config.ts:68](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L68) |
 | <a id="copytestdata"></a> `copyTestData?` | `boolean` | `false` | Copy the test data directory to a new bucket: https://github.com/umccr/htsget-rs/tree/main/data Also copies the Crypt4GH keys to Secrets Manager. Automatically the htsget-rs server access to the bucket and secrets using the locations config. | [lib/config.ts:79](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L79) |
 | <a id="cors"></a> `cors?` | [`CorsConifg`](#corsconifg) | same as the `CorsConfig` defaults | CORS configuration for the htsget-rs server. Values here are propagated to CORS options in htsget-rs. | [lib/config.ts:45](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L45) |
@@ -69,7 +69,7 @@ Settings related to the htsget lambda construct props.
 
 ## HtsgetLocation
 
-Defined in: [lib/config.ts:221](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L221)
+Defined in: [lib/config.ts:224](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L224)
 
 Config for locations.
 
@@ -77,15 +77,15 @@ Config for locations.
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="location"></a> `location` | `string` | `undefined` | The location string. | [lib/config.ts:225](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L225) |
-| <a id="private_key"></a> `private_key?` | `string` | `undefined` | Optional Crypt4GH private key secret ARN or name. | [lib/config.ts:231](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L231) |
-| <a id="public_key"></a> `public_key?` | `string` | `undefined` | Optional Crypt4GH public key secret ARN or name. | [lib/config.ts:237](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L237) |
+| <a id="location"></a> `location` | `string` | `undefined` | The location string. | [lib/config.ts:228](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L228) |
+| <a id="private_key"></a> `private_key?` | `string` | `undefined` | Optional Crypt4GH private key secret ARN or name. | [lib/config.ts:234](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L234) |
+| <a id="public_key"></a> `public_key?` | `string` | `undefined` | Optional Crypt4GH public key secret ARN or name. | [lib/config.ts:240](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L240) |
 
 ***
 
 ## JwtConfig
 
-Defined in: [lib/config.ts:122](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L122)
+Defined in: [lib/config.ts:125](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L125)
 
 JWT authorization settings.
 
@@ -93,5 +93,5 @@ JWT authorization settings.
 
 | Property | Type | Default value | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="audience"></a> `audience?` | `string`[] | `[]` | The JWT audience. | [lib/config.ts:128](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L128) |
-| <a id="coguserpoolid"></a> `cogUserPoolId?` | `string` | `undefined`, creates a new user pool | The cognito user pool id for the authorizer. If this is not set, then a new user pool is created. | [lib/config.ts:135](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L135) |
+| <a id="audience"></a> `audience?` | `string`[] | `[]` | The JWT audience. | [lib/config.ts:131](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L131) |
+| <a id="coguserpoolid"></a> `cogUserPoolId?` | `string` | `undefined`, creates a new user pool | The cognito user pool id for the authorizer. If this is not set, then a new user pool is created. | [lib/config.ts:138](https://github.com/umccr/htsget-deploy/blob/main/lib/config.ts#L138) |

@@ -109,7 +109,10 @@ export interface HtsgetLambdaProps {
   role?: IRole;
 
   /**
-   * Override the enviornment used to build htsget.
+   * Override the environment variables used to build htsget. Note that this only adds environment variables that
+   * get used to build htsget-rs with `cargo`. It has no effect on the environment variables that htsget-rs has when
+   * the Lambda function is deployed. In general, leave this undefined unless there is a specific reason to override
+   * the build environment.
    *
    * @defaultValue undefined
    */
