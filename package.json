@@ -34,7 +34,7 @@
     "prettier": "prettier",
     "run": "cdk deploy",
     "watch": "tsc -w",
-    "typedoc": "typedoc"
+    "typedoc": "typedoc --gitRevision main --plugin typedoc-plugin-markdown"
   },
   "version": "0.9.0"
 }
