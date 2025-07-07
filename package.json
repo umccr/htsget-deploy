@@ -3,11 +3,20 @@
     "htsget_app": "bin/htsget-lambda.js"
   },
   "dependencies": {
-    "cargo-lambda-cdk": "^0.0.33"
+    "@cloudflare/containers": "^0.0.19",
+    "hono": "4.8.2"
+  },
+  "cloudflare": {
+    "label": "Containers Starter",
+    "products": [
+      "Workers",
+      "Durable Objects",
+      "Containers"
+    ]
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
-    "@types/node": "22.15.29",
+    "@types/node": "^24.0.10",
     "aws-cdk": "2.112.0",
     "aws-cdk-lib": "2.112.0",
     "constructs": "10.4.2",
@@ -16,7 +25,8 @@
     "typedoc": "^0.28.5",
     "typedoc-plugin-markdown": "^4.6.4",
     "typescript": "5.8.3",
-    "typescript-eslint": "^8.33.0"
+    "typescript-eslint": "^8.33.0",
+    "wrangler": "^4.23.0"
   },
   "files": [
     "./**/*.d.ts",
@@ -33,6 +43,7 @@
     "cdk": "cdk",
     "prettier": "prettier",
     "run": "cdk deploy",
+    "cfdev": "wrangler dev",
     "watch": "tsc -w",
     "typedoc": "typedoc --gitRevision main --plugin typedoc-plugin-markdown"
   },
