@@ -2,16 +2,22 @@
   "bin": {
     "htsget_app": "bin/htsget-lambda.js"
   },
+  "dependencies": {
+    "@cloudflare/containers": "^0.0.19",
+    "hono": "4.8.2"
+  },
+  "cloudflare": {
+    "label": "Containers Starter",
+    "products": [
+      "Workers",
+      "Containers"
+    ]
+  },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
     "@types/node": "^24.0.10",
-    "aws-cdk": "2.112.0",
-    "aws-cdk-lib": "2.112.0",
-    "constructs": "10.4.2",
     "eslint": "^9.28.0",
     "prettier": "^3.5.3",
-    "typedoc": "^0.28.5",
-    "typedoc-plugin-markdown": "^4.6.4",
     "typescript": "5.8.3",
     "typescript-eslint": "^8.33.0",
     "wrangler": "^4.23.0"
@@ -21,17 +27,13 @@
     "./**/*.js"
   ],
   "license": "MIT",
-  "name": "htsget-lambda",
+  "name": "htsget-rs",
   "packageManager": "pnpm@10.11.0",
-  "peerDependencies": {
-    "aws-cdk-lib": "^2.112.0"
-  },
   "scripts": {
     "build": "tsc",
     "cdk": "cdk",
     "prettier": "prettier",
-    "run": "cdk deploy",
-    "cfdev": "wrangler dev",
+    "dev": "wrangler dev",
     "watch": "tsc -w",
     "typedoc": "typedoc --gitRevision main --plugin typedoc-plugin-markdown"
   },
