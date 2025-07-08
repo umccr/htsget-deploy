@@ -5,7 +5,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "htsget-deploy",
-	"main": "../htsget-rs/target/release/htsget-actix",
+	"main": "cloudflare/index.ts",
 	"compatibility_date": "2025-05-23",
 	"compatibility_flags": [
 		"nodejs_compat"
@@ -14,7 +14,7 @@
 		"enabled": true
 	},
 	"assets": {
-		"directory": "../htsget-rs/target/release",
+		"directory": "cloudflare",
 		"run_worker_first": [
 			"/*" // API routes skip static asset handling
 		]
@@ -22,7 +22,7 @@
 	"containers": [
 		{
 			"class_name": "htsget-rs",
-			"image": "../htsget-rs/docker/Dockerfile",
+			"image": "cloudflare/Dockerfile",
 			"max_instances": 1,
 			"name": "htsget-rs"
 		}
