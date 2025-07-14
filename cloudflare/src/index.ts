@@ -1,4 +1,4 @@
-import { Container, loadBalance, getContainer } from "@cloudflare/containers";
+import { Container, getContainer } from "@cloudflare/containers";
 import { Hono } from "hono";
 
 export class MyContainer extends Container {
@@ -34,46 +34,26 @@ const app = new Hono<{
 app.get("/", (c) => {
   return c.text(
     "Available endpoints:\n" +
-      "GET /container/<ID> - Start a container for each ID with a 2m timeout\n" +
-      "GET /lb - Load balance requests over multiple containers\n" +
-      "GET /error - Start a container that errors (demonstrates error handling)\n" +
-      "GET /singleton - Get a single specific container instance",
+      "GET /reads/<ID> - Query alignment objects" +
+      "GET /variants/<ID> - Query variant objects",
   );
 });
 
 // Route requests to a specific container using the container ID
-app.get("/hello", async (c) => {
-  console.log("hello");
-  const containerId = c.env.MY_CONTAINER.idFromName(`/container/1`);
-  console.log("containerId:", containerId);
-  const container = c.env.MY_CONTAINER.get(containerId);
-  console.log("container:", container);
+app.get("/reads/:id", async (c) => {
+  const container = getContainer(c.env.MY_CONTAINER);
   return await container.fetch(c.req.raw);
 });
 
 // Route requests to a specific container using the container ID
-app.get("/container/:id", async (c) => {
-  const id = c.req.param("id");
-  const containerId = c.env.MY_CONTAINER.idFromName(`/container/${id}`);
-  const container = c.env.MY_CONTAINER.get(containerId);
+app.get("/variants/:id", async (c) => {
+  const container = getContainer(c.env.MY_CONTAINER);
   return await container.fetch(c.req.raw);
 });
 
 // Demonstrate error handling - this route forces a panic in the container
 app.get("/error", async (c) => {
   const container = getContainer(c.env.MY_CONTAINER, "error-test");
-  return await container.fetch(c.req.raw);
-});
-
-// Load balance requests across multiple containers
-app.get("/lb", async (c) => {
-  const container = await loadBalance(c.env.MY_CONTAINER, 3);
-  return await container.fetch(c.req.raw);
-});
-
-// Get a single container instance (singleton pattern)
-app.get("/singleton", async (c) => {
-  const container = getContainer(c.env.MY_CONTAINER);
   return await container.fetch(c.req.raw);
 });
 
