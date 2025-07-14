@@ -7,4 +7,5 @@ LABEL org.opencontainers.image.licenses=MIT
 LABEL org.opencontainers.image.authors="Roman Valls Guimera <brainstorm@nopcode.org>, Marko Malenic <mmalenic1@gmail.com>"
 
 EXPOSE 8080
+EXPOSE 8081
 CMD [ "htsget-axum" ]
