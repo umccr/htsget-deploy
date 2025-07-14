@@ -13,18 +13,34 @@
 	"observability": {
 		"enabled": true
 	},
-	"assets": {
-		"directory": ".",
-		"run_worker_first": [
-			"/*" // API routes skip static asset handling
-		]
-	},
+	// "assets": {
+	// 	"directory": ".",
+	// 	"run_worker_first": [
+	// 		"/*" // API routes skip static asset handling
+	// 	]
+	// },
 	"containers": [
 		{
 			"class_name": "MyContainer",
 			"image": "./Dockerfile",
 			"max_instances": 1,
 			"name": "htsget-rs"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"class_name": "MyContainer",
+				"name": "MY_CONTAINER"
+			}
+	]
+	},
+		"migrations": [
+		{
+			"new_sqlite_classes": [
+				"MyContainer"
+			],
+			"tag": "v1"
 		}
 	]
 	/**
