@@ -5,7 +5,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "htsget-rs",
-	"main": "index.ts",
+	"main": "src/index.ts",
 	"compatibility_date": "2025-05-23",
 	"compatibility_flags": [
 		"nodejs_compat"
@@ -21,8 +21,8 @@
 	},
 	"containers": [
 		{
-			"class_name": "htsget-rs",
-			"image": "Dockerfile",
+			"class_name": "MyContainer",
+			"image": "./Dockerfile",
 			"max_instances": 1,
 			"name": "htsget-rs"
 		}
