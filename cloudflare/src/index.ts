@@ -1,18 +1,52 @@
 import { Container, getContainer } from "@cloudflare/containers";
 import { Hono } from "hono";
 
-export class MyContainer extends Container {
-  // Port the container listens on (default: 8080)
-  defaultPort = 8080;
+interface EnvWithCustomVariables extends Env {
+  API_TOKEN: string;
+  R2_TOKEN: string;
+  R2_ENDPOINT: string;
+  R2_CATALOG: string;
+  R2_ACCESS_KEY_ID: string;
+  R2_SECRET_ACCESS_KEY: string;
+  R2_ACCOUNT_ID: string;
+  R2_BUCKET: string;
+}
 
-  // Optional lifecycle hooks
-  override onStart() {
-    console.log("Container successfully started");
-  }
 
-  override onStop() {
-    console.log("Container successfully shut down");
-  }
+export class MyContainer extends Container<EnvWithCustomVariables> {
+  constructor(ctx: any, env: EnvWithCustomVariables) {
+        super(ctx, env);
+        let envConfig: Record<string, string> = {};
+
+        // Port the container listens on (default: 8080)
+        this.defaultPort = 8080;
+
+        // Add R2 Data Catalog credentials if provided -> For Iceberg to work
+        if (env.R2_TOKEN && env.R2_ENDPOINT && env.R2_CATALOG) {
+          envConfig = {
+            ...envConfig,
+            R2_TOKEN: env.R2_TOKEN,
+            R2_ENDPOINT: env.R2_ENDPOINT,
+            R2_CATALOG: env.R2_CATALOG,
+          };
+        }
+
+        // Add R2 credentials if provided
+        if (
+          env.R2_ACCESS_KEY_ID &&
+          env.R2_SECRET_ACCESS_KEY &&
+          env.R2_ACCOUNT_ID &&
+          env.R2_BUCKET
+        ) {
+          envConfig = {
+            ...envConfig,
+            R2_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID,
+            R2_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY,
+            R2_ACCOUNT_ID: env.R2_ACCOUNT_ID,
+            R2_BUCKET: env.R2_BUCKET
+          };
+        }
+    }
 }
 
 // Create Hono app with proper typing for Cloudflare Workers
