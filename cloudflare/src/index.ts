@@ -2,10 +2,8 @@ import { Container, getContainer } from "@cloudflare/containers";
 import { Hono } from "hono";
 
 interface EnvWithCustomVariables extends Env {
-  API_TOKEN: string;
   R2_TOKEN: string;
   R2_ENDPOINT: string;
-  R2_CATALOG: string;
   R2_ACCESS_KEY_ID: string;
   R2_SECRET_ACCESS_KEY: string;
   R2_ACCOUNT_ID: string;
@@ -22,12 +20,11 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
         this.defaultPort = 8080;
 
         // Add R2 Data Catalog credentials if provided -> For Iceberg to work
-        if (env.R2_TOKEN && env.R2_ENDPOINT && env.R2_CATALOG) {
+        if (env.R2_TOKEN && env.R2_ENDPOINT) {
           envConfig = {
             ...envConfig,
             R2_TOKEN: env.R2_TOKEN,
             R2_ENDPOINT: env.R2_ENDPOINT,
-            R2_CATALOG: env.R2_CATALOG,
           };
         }
 
