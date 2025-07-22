@@ -48,7 +48,9 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
 
 // Create Hono app with proper typing for Cloudflare Workers
 const app = new Hono<{
-  Bindings: { MY_CONTAINER: DurableObjectNamespace<MyContainer> };
+  Bindings: { MY_CONTAINER: DurableObjectNamespace<MyContainer>,
+              MY_BUCKET: R2Bucket
+   };
 }>();
 
 // Home route with available endpoints

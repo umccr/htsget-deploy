@@ -27,6 +27,12 @@
 			"name": "htsget-rs"
 		}
 	],
+	"r2_buckets": [
+		{
+			"binding": "MY_BUCKET",
+			"bucket_name": "umccr-htsget-rs-dev-public"
+		}
+	],
 	"durable_objects": {
 		"bindings": [
 			{
