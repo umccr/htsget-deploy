@@ -1,0 +1,4 @@
+R2_BUCKET="umccr-htsget-rs-dev-public"
+R2_ENDPOINT="https://<meow>.r2.cloudflarestorage.com"
+R2_SECRET_ACCESS_KEY="foo"
+R2_ACCESS_KEY_ID="bar"

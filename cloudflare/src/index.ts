@@ -6,13 +6,12 @@ interface EnvWithCustomVariables extends Env {
   R2_ENDPOINT: string;
   R2_ACCESS_KEY_ID: string;
   R2_SECRET_ACCESS_KEY: string;
-  R2_ACCOUNT_ID: string;
   R2_BUCKET: string;
 }
 
 
 export class MyContainer extends Container<EnvWithCustomVariables> {
-  constructor(ctx: any, env: EnvWithCustomVariables) {
+  constructor(ctx: DurableObjectState, env: EnvWithCustomVariables) {
         super(ctx, env);
         let envConfig: Record<string, string> = {};
 
@@ -32,14 +31,12 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
         if (
           env.R2_ACCESS_KEY_ID &&
           env.R2_SECRET_ACCESS_KEY &&
-          env.R2_ACCOUNT_ID &&
           env.R2_BUCKET
         ) {
-          envConfig = {
+          this.envVars = {
             ...envConfig,
             R2_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID,
             R2_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY,
-            R2_ACCOUNT_ID: env.R2_ACCOUNT_ID,
             R2_BUCKET: env.R2_BUCKET
           };
         }
@@ -49,7 +46,8 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
 // Create Hono app with proper typing for Cloudflare Workers
 const app = new Hono<{
   Bindings: { MY_CONTAINER: DurableObjectNamespace<MyContainer>,
-              MY_BUCKET: R2Bucket
+              MY_BUCKET: R2Bucket,
+              MY_SECRETS: SecretsStoreSecret
    };
 }>();
 
