@@ -33,13 +33,13 @@
 			"bucket_name": "umccr-htsget-rs-dev-public"
 		}
 	],
-	"secrets_store_secrets": [
-		{
-		"binding": "MY_SECRETS",
-		"store_id": "htsget-rs",
-		"secret_name": "R2_SECRET_ACCESS_KEY"
-		}
-  	],
+	// "secrets_store_secrets": [
+	// 	{
+	// 	"binding": "MY_SECRETS",
+	// 	"store_id": "htsget-rs",
+	// 	"secret_name": "R2_SECRET_ACCESS_KEY",
+	// 	}
+  	// ],
 	"durable_objects": {
 		"bindings": [
 			{

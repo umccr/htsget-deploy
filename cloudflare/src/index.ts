@@ -47,7 +47,7 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
 const app = new Hono<{
   Bindings: { MY_CONTAINER: DurableObjectNamespace<MyContainer>,
               MY_BUCKET: R2Bucket,
-              MY_SECRETS: SecretsStoreSecret
+              // MY_SECRETS: SecretsStoreSecret
    };
 }>();
 
