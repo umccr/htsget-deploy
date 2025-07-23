@@ -55,19 +55,13 @@ const app = new Hono<{
 app.get("/", (c) => {
   return c.text(
     "Available endpoints:\n" +
-      "GET /reads/<ID> - Query alignment objects" +
+      "GET /reads/<ID> - Query alignment objects\n" +
       "GET /variants/<ID> - Query variant objects",
   );
 });
 
 // Route requests to a specific container using the container ID
-app.get("/reads/:id", async (c) => {
-  const container = getContainer(c.env.MY_CONTAINER);
-  return await container.containerFetch(c.req.raw);
-});
-
-// Route requests to a specific container using the container ID
-app.get("/variants/:id", async (c) => {
+app.get("/*", async (c) => {
   const container = getContainer(c.env.MY_CONTAINER);
   return await container.containerFetch(c.req.raw);
 });
