@@ -1,4 +1,5 @@
-R2_BUCKET="umccr-htsget-rs-dev-public"
-R2_ENDPOINT="https://<meow>.r2.cloudflarestorage.com"
-R2_SECRET_ACCESS_KEY="foo"
-R2_ACCESS_KEY_ID="bar"
+R2_BUCKET=umccr-htsget-rs-dev-public
+R2_SECRET_ACCESS_KEY=meow
+R2_ACCESS_KEY_ID=foo
+R2_ENDPOINT=https://<cloudflare_account_id>.r2.cloudflarestorage.com/umccr-htsget-rs-dev-public
+HTSGET_LOCATIONS="[{ regex=.*, substitution_string=$0, backend={ kind=S3, bucket=umccr-htsget-rs-dev-public, endpoint=https://<cloudflare_account_id>.r2.cloudflarestorage.com, path_style=true }} ]"

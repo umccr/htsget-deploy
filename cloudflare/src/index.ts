@@ -16,28 +16,18 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
   constructor(ctx: DurableObjectState, env: EnvWithCustomVariables) {
         super(ctx, env);
 
-        const HTSGET_LOCATIONS =
-          "[{ regex=.*, substitution_string=$0, \
-              backend={ kind=S3, bucket=bucket, \
-              endpoint=<cloudflare_endpoint>, path_style=true }} ]";
-
         // Port the container listens on (default: 8080)
         this.defaultPort = 8080;
 
         this.envVars = {
-          R2_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID,
-          R2_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY,
+          AWS_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID,
+          AWS_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY,
           R2_BUCKET: env.R2_BUCKET,
-          HTSGET_LOCATIONS: toHtsgetEnv(HTSGET_LOCATIONS),
+          HTSGET_LOCATIONS: env.HTSGET_LOCATIONS,
+          AWS_DEFAULT_REGION: "auto", // Otherwise S3 sdk will error out: ResolveEndpointError { message: "A region must be set when sending requests to S3."
           RUST_LOG: 'info,htsget_lambda=trace,htsget_lambda=trace,htsget_config=trace,htsget_http=trace,htsget_search=trace,htsget_test=trace'
         };
     }
-}
-
-function toHtsgetEnv(value: unknown) {
-      return JSON.stringify(value)
-        .replaceAll(new RegExp(/"( )*:( )*/g), "=")
-        .replaceAll('"', "");
 }
 
 // Create Hono app with proper typing for Cloudflare Workers
