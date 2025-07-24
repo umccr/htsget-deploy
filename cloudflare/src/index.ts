@@ -7,40 +7,37 @@ interface EnvWithCustomVariables extends Env {
   R2_ACCESS_KEY_ID: string;
   R2_SECRET_ACCESS_KEY: string;
   R2_BUCKET: string;
+  // Htsget
+  HTSGET_LOCATIONS: string;
+  RUST_LOG: string;
 }
-
 
 export class MyContainer extends Container<EnvWithCustomVariables> {
   constructor(ctx: DurableObjectState, env: EnvWithCustomVariables) {
         super(ctx, env);
-        let envConfig: Record<string, string> = {};
+
+        const HTSGET_LOCATIONS =
+          "[{ regex=.*, substitution_string=$0, \
+              backend={ kind=S3, bucket=bucket, \
+              endpoint=<cloudflare_endpoint>, path_style=true }} ]";
 
         // Port the container listens on (default: 8080)
         this.defaultPort = 8080;
 
-        // Add R2 Data Catalog credentials if provided -> For Iceberg to work
-        if (env.R2_TOKEN && env.R2_ENDPOINT) {
-          envConfig = {
-            ...envConfig,
-            R2_TOKEN: env.R2_TOKEN,
-            R2_ENDPOINT: env.R2_ENDPOINT,
-          };
-        }
-
-        // Add R2 credentials if provided
-        if (
-          env.R2_ACCESS_KEY_ID &&
-          env.R2_SECRET_ACCESS_KEY &&
-          env.R2_BUCKET
-        ) {
-          this.envVars = {
-            ...envConfig,
-            R2_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID,
-            R2_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY,
-            R2_BUCKET: env.R2_BUCKET
-          };
-        }
+        this.envVars = {
+          R2_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID,
+          R2_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY,
+          R2_BUCKET: env.R2_BUCKET,
+          HTSGET_LOCATIONS: toHtsgetEnv(HTSGET_LOCATIONS),
+          RUST_LOG: 'info,htsget_lambda=trace,htsget_lambda=trace,htsget_config=trace,htsget_http=trace,htsget_search=trace,htsget_test=trace'
+        };
     }
+}
+
+function toHtsgetEnv(value: unknown) {
+      return JSON.stringify(value)
+        .replaceAll(new RegExp(/"( )*:( )*/g), "=")
+        .replaceAll('"', "");
 }
 
 // Create Hono app with proper typing for Cloudflare Workers
