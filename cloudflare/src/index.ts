@@ -3,13 +3,14 @@ import { Hono } from "hono";
 
 interface EnvWithCustomVariables extends Env {
   R2_TOKEN: string;
-  R2_ENDPOINT: string;
-  R2_ACCESS_KEY_ID: string;
-  R2_SECRET_ACCESS_KEY: string;
+  AWS_ENDPOINT: string;
+  AWS_ACCESS_KEY_ID: string;
+  AWS_SECRET_ACCESS_KEY: string;
   R2_BUCKET: string;
   // Htsget
   HTSGET_LOCATIONS: string;
   RUST_LOG: string;
+  LOG_SENSITIVE_BODIES: string;
 }
 
 export class MyContainer extends Container<EnvWithCustomVariables> {
@@ -20,12 +21,14 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
         this.defaultPort = 8080;
 
         this.envVars = {
-          AWS_ACCESS_KEY_ID: env.R2_ACCESS_KEY_ID,
-          AWS_SECRET_ACCESS_KEY: env.R2_SECRET_ACCESS_KEY,
+          AWS_ACCESS_KEY_ID: env.AWS_ACCESS_KEY_ID,
+          AWS_SECRET_ACCESS_KEY: env.AWS_SECRET_ACCESS_KEY,
           R2_BUCKET: env.R2_BUCKET,
           HTSGET_LOCATIONS: env.HTSGET_LOCATIONS,
-          AWS_DEFAULT_REGION: "auto", // Otherwise S3 sdk will error out: ResolveEndpointError { message: "A region must be set when sending requests to S3."
-          RUST_LOG: 'info,htsget_lambda=trace,htsget_lambda=trace,htsget_config=trace,htsget_http=trace,htsget_search=trace,htsget_test=trace'
+          AWS_REGION: "eu-east-1", //"auto", // Otherwise S3 sdk will error out: ResolveEndpointError { message: "A region must be set when sending requests to S3."
+          RUST_LOG: 'trace,htsget_lambda=trace,htsget_lambda=trace,htsget_config=trace,htsget_http=trace,htsget_search=trace,htsget_test=trace',
+          LOG_SENSITIVE_BODIES: 'true', // aws-sdk-rust showing all trace info
+          LOG_SIGNABLE_BODY: 'true'
         };
     }
 }
