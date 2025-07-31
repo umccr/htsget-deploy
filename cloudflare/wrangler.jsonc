@@ -7,18 +7,20 @@
 	"name": "htsget-rs",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-05-23",
+	"preview_urls": false,
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
 	"observability": {
 		"enabled": true
 	},
-	// "assets": {
-	// 	"directory": ".",
-	// 	"run_worker_first": [
-	// 		"/*" // API routes skip static asset handling
-	// 	]
-	// },
+	"assets": {
+		"directory": "./assets",
+		"binding": "ASSETS"
+		// "run_worker_first": [
+		// 	"/*" // API routes skip static asset handling
+		// ]
+	},
 	"containers": [
 		{
 			"class_name": "MyContainer",
@@ -33,13 +35,6 @@
 			"bucket_name": "umccr-htsget-rs-dev-public"
 		}
 	],
-	// "secrets_store_secrets": [
-	// 	{
-	// 	"binding": "MY_SECRETS",
-	// 	"store_id": "htsget-rs",
-	// 	"secret_name": "R2_SECRET_ACCESS_KEY",
-	// 	}
-  	// ],
 	"durable_objects": {
 		"bindings": [
 			{

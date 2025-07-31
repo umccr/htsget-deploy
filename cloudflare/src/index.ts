@@ -25,9 +25,9 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
           AWS_SECRET_ACCESS_KEY: env.AWS_SECRET_ACCESS_KEY,
           R2_BUCKET: env.R2_BUCKET,
           HTSGET_LOCATIONS: env.HTSGET_LOCATIONS,
-          AWS_REGION: "eu-east-1", //"auto", // Otherwise S3 sdk will error out: ResolveEndpointError { message: "A region must be set when sending requests to S3."
+          AWS_REGION: "auto", // Otherwise S3 sdk will error out: ResolveEndpointError { message: "A region must be set when sending requests to S3. }. Can also be safely set to 'us-east-1'"
           RUST_LOG: 'trace,htsget_lambda=trace,htsget_lambda=trace,htsget_config=trace,htsget_http=trace,htsget_search=trace,htsget_test=trace',
-          LOG_SENSITIVE_BODIES: 'true', // aws-sdk-rust showing all trace info
+          LOG_SENSITIVE_BODIES: 'true', // aws-sdk-rust showing ALL trace info
           LOG_SIGNABLE_BODY: 'true'
         };
     }
@@ -36,18 +36,17 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
 // Create Hono app with proper typing for Cloudflare Workers
 const app = new Hono<{
   Bindings: { MY_CONTAINER: DurableObjectNamespace<MyContainer>,
-              MY_BUCKET: R2Bucket,
-              // MY_SECRETS: SecretsStoreSecret
-   };
+              MY_BUCKET: R2Bucket };
 }>();
 
 // Home route with available endpoints
 app.get("/", (c) => {
-  return c.text(
-    "Available endpoints:\n" +
-      "GET /reads/<ID> - Query alignment objects\n" +
-      "GET /variants/<ID> - Query variant objects",
-  );
+  // const info_header = c.text(
+  //   "Available endpoints:\n" +
+  //     "GET /reads/<ID> - Query alignment objects\n"+
+  //     "GET /variants/<ID> - Query variant objects",
+  // );
+  return c.env.ASSETS.fetch("index.html");
 });
 
 // Route requests to a specific container using the container ID

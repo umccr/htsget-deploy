@@ -1,3 +1,4 @@
 .dev.vars
+.dev.vars.production
 .wrangler
 node_modules
