@@ -16,12 +16,6 @@ First, run:
 
 ```bash
 npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
 ```
 
 Then run the development server (using the package manager of your choice):
@@ -36,6 +30,26 @@ You can start editing your Worker by modifying `src/index.ts` and you can start
 editing your Container by editing the content of `container_src`.
 
 ## Deploying To Production
+
+First adjust the [CORS config for your R2 bucket](https://developers.cloudflare.com/r2/buckets/cors/) (YMMV):
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "http://localhost:8787",
+      "https://htsget-rs.umccr.workers.dev"
+    ],
+    "AllowedMethods": [
+      "GET",
+      "HEAD"
+    ]
+  }
+]
+```
+
+Then deploy your application to Cloudflare:
+
 
 | Command          | Action                                |
 | :--------------- | :------------------------------------ |

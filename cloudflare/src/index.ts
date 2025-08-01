@@ -9,6 +9,7 @@ interface EnvWithCustomVariables extends Env {
   R2_BUCKET: string;
   // Htsget
   HTSGET_LOCATIONS: string;
+  // Rust debugging
   RUST_LOG: string;
   LOG_SENSITIVE_BODIES: string;
 }
@@ -27,8 +28,8 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
           HTSGET_LOCATIONS: env.HTSGET_LOCATIONS,
           AWS_REGION: "auto", // Otherwise S3 sdk will error out: ResolveEndpointError { message: "A region must be set when sending requests to S3. }. Can also be safely set to 'us-east-1'"
           RUST_LOG: 'trace,htsget_lambda=trace,htsget_lambda=trace,htsget_config=trace,htsget_http=trace,htsget_search=trace,htsget_test=trace',
-          LOG_SENSITIVE_BODIES: 'true', // aws-sdk-rust showing ALL trace info
-          LOG_SIGNABLE_BODY: 'true'
+          LOG_SENSITIVE_BODIES: 'false', // aws-sdk-rust will show ALL trace info
+          LOG_SIGNABLE_BODY: 'false'     // will log sensitive data
         };
     }
 }
@@ -41,11 +42,6 @@ const app = new Hono<{
 
 // Home route with available endpoints
 app.get("/", (c) => {
-  // const info_header = c.text(
-  //   "Available endpoints:\n" +
-  //     "GET /reads/<ID> - Query alignment objects\n"+
-  //     "GET /variants/<ID> - Query variant objects",
-  // );
   return c.env.ASSETS.fetch("index.html");
 });
 
