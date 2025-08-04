@@ -27,8 +27,8 @@
 
     var div = document.getElementById("myDiv");
     var options = {
-        genome: "hg19",
-        locus: "chrM",
+        genome: "hg38",
+        locus: "chrM:4,824-10,504",
         tracks: [
             // {
             //    type: 'variant',
@@ -39,10 +39,10 @@
             // },
             {
                type: 'alignment',
-               name: 'htsnexus_test_NA12878',
+               name: 'Mithocondrial DNA',
                sourceType: 'htsget',
                format: 'bam',
-                url: 'https://htsget-rs.umccr.workers.dev/reads/bam/mt.sorted'
+               url: 'https://htsget-rs.umccr.workers.dev/reads/bam/mt.sorted'
             }
         ]
     };
