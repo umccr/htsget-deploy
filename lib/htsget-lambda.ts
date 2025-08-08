@@ -105,6 +105,7 @@ export class HtsgetLambda extends Construct {
           RUSTFLAGS: "-C target-cpu=neoverse-n1",
           CARGO_PROFILE_RELEASE_LTO: "true",
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
+          AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH: "true",
           ...props.buildEnvironment,
         },
         cargoLambdaFlags: props.cargoLambdaFlags ?? [
