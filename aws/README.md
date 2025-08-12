@@ -1,8 +1,3 @@
-# htsget-deploy
-
-Deploy a cloud-based implementation of [htsget-rs]. This project contains a reusable CDK construct that deploys
-htsget-lambda using an AWS [API Gateway][aws-api-gateway] function and an example CDK stack.
-
 ## Quickstart
 
 Here's how to deploy [htsget-rs's htsget-lambda](https://github.com/umccr/htsget-rs) to AWS:
