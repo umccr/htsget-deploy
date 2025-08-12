@@ -1,7 +1,4 @@
 {
-  "bin": {
-    "htsget_app": "bin/htsget-lambda.js"
-  },
   "dependencies": {
     "@cloudflare/containers": "^0.0.25",
     "hono": "4.9.0"
