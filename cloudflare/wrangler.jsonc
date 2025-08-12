@@ -17,9 +17,6 @@
 	"assets": {
 		"directory": "./assets",
 		"binding": "ASSETS"
-		// "run_worker_first": [
-		// 	"/*" // API routes skip static asset handling
-		// ]
 	},
 	"containers": [
 		{
