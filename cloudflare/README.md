@@ -21,6 +21,7 @@ npm install
 Then run the development server (using the package manager of your choice):
 
 ```bash
+wrangler types
 npm run dev
 ```
 
