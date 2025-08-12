@@ -4,5 +4,6 @@ volume
 .build
 cdk.context.json
 cdk.out
+*.d.ts
 *.js
 dist
