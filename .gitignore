@@ -5,5 +5,4 @@ volume
 cdk.context.json
 cdk.out
 *.js
-*.d.ts
 dist
