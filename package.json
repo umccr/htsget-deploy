@@ -1,0 +1,10 @@
+{
+  "name": "htsget-deploy",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [],
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test"
+  }
+}
