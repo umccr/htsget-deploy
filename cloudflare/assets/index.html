@@ -1,57 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <link rel="shortcut icon" href="https://igv.org/web/img/favicon.ico">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <link rel="shortcut icon" href="https://igv.org/web/img/favicon.ico" />
 
     <title>igv.js and htsget-rs demo</title>
+  </head>
+  <body>
+    <h1>Cloudflare htsget-rs demo</h1>
+    <div id="htsgetEndpoints">
+      <p>Available htsget-rs server API endpoints used in this demo:</p>
 
-</head>
-<body>
-<h1>Cloudflare htsget-rs demo</h1>
-<div id="htsgetEndpoints">
-    <p>
-    Available htsget-rs server API endpoints used in this demo:
-    <ul>
-      <li><code>GET /reads/&lt;ID&gt;</code> - Query alignment objects</li>
-      <li><code>GET /variants/&lt;ID&gt;</code> - Query variant objects</li>
-    </ul>
-</div>
-<div id="myDiv" style="padding-top: 50px;padding-bottom: 20px; height: auto"></div>
-<script type="module">
-    import igv from "https://igv.org/web/snapshot/dist/igv.esm.js";
+      <ul>
+        <li><code>GET /reads/&lt;ID&gt;</code> - Query alignment objects</li>
+        <li><code>GET /variants/&lt;ID&gt;</code> - Query variant objects</li>
+      </ul>
+    </div>
+    <div
+      id="myDiv"
+      style="padding-top: 50px; padding-bottom: 20px; height: auto"
+    ></div>
+    <script type="module">
+      import igv from "https://igv.org/web/snapshot/dist/igv.esm.js";
 
-    var div = document.getElementById("myDiv");
-    var options = {
+      var div = document.getElementById("myDiv");
+      var options = {
         genome: "hg38",
         locus: "chrM:4,824-10,504",
         tracks: [
-            // {
-            //    type: 'variant',
-            //    name: 'spec-v4.3',
-            //    sourceType: 'htsget',
-            //    format: "VCF",
-            //     url: 'htsget://htsget.ga4gh-demo.org/variants/spec-v4.3'
-            // },
-            {
-               type: 'alignment',
-               name: 'Mithocondrial DNA',
-               sourceType: 'htsget',
-               format: 'bam',
-               url: 'https://htsget-rs.umccr.workers.dev/reads/bam/mt.sorted'
-            }
-        ]
-    };
+          // {
+          //    type: 'variant',
+          //    name: 'spec-v4.3',
+          //    sourceType: 'htsget',
+          //    format: "VCF",
+          //     url: 'htsget://htsget.ga4gh-demo.org/variants/spec-v4.3'
+          // },
+          {
+            type: "alignment",
+            name: "Mithocondrial DNA",
+            sourceType: "htsget",
+            format: "bam",
+            url: "https://htsget-rs.umccr.workers.dev/reads/bam/mt.sorted",
+          },
+        ],
+      };
 
-    igv.createBrowser(div, options)
+      igv
+        .createBrowser(div, options)
 
         .then(function (browser) {
-            console.log("Created IGV browser");
-        })
-</script>
-</body>
+          console.log("Created IGV browser");
+        });
+    </script>
+  </body>
 </html>

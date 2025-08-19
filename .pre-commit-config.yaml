@@ -18,11 +18,11 @@ repos:
     rev: v3.6.2
     hooks:
       - id: prettier
-        exclude: pnpm-lock.yaml
+        exclude: (pnpm-lock.yaml|.*.jsonc)
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v9.32.0
     hooks:
       - id: eslint
         files: \.(m|c)?[jt]sx?$
         types: [file]
-        exclude: pnpm-lock.yaml
+        exclude: (pnpm-lock.yaml|eslint.config.mjs)
