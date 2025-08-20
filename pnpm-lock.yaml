@@ -14,27 +14,12 @@ importers:
       '@types/node':
         specifier: ^24.2.1
         version: 24.2.1
-      aws-cdk:
-        specifier: 2.112.0
-        version: 2.112.0
-      aws-cdk-lib:
-        specifier: ^2.210.0
-        version: 2.211.0(constructs@10.4.2)
-      constructs:
-        specifier: 10.4.2
-        version: 10.4.2
       eslint:
         specifier: ^9.33.0
         version: 9.33.0
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
-      typedoc:
-        specifier: ^0.28.10
-        version: 0.28.10(typescript@5.8.3)
-      typedoc-plugin-markdown:
-        specifier: ^4.8.1
-        version: 4.8.1(typedoc@0.28.10(typescript@5.8.3))
       typescript:
         specifier: 5.8.3
         version: 5.8.3
@@ -60,9 +45,6 @@ importers:
       constructs:
         specifier: 10.4.2
         version: 10.4.2
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
       typedoc:
         specifier: ^0.28.10
         version: 0.28.10(typescript@5.8.3)
@@ -85,9 +67,6 @@ importers:
       '@types/node':
         specifier: ^24.2.1
         version: 24.2.1
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
       typescript:
         specifier: 5.8.3
         version: 5.8.3
