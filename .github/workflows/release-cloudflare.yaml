@@ -1,0 +1,26 @@
+name: release
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  release:
+    if: ${{ startsWith(github.event.release.tag_name, 'htsget-workers') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
+      - run: pnpm install
+        working-directory: cloudflare
+      - run: pnpm run build
+        working-directory: cloudflare
+      - run: pnpm publish --access public --no-git-checks
+        working-directory: cloudflare
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.HTSGET_RS_DEPLOY_PUBLISH_TOKEN }}

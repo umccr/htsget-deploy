@@ -6,6 +6,7 @@ on:
 
 jobs:
   release:
+    if: ${{ startsWith(github.event.release.tag_name, 'htsget-lambda') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,7 +17,10 @@ jobs:
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
       - run: pnpm install
+        working-directory: aws
       - run: pnpm run build
+        working-directory: aws
       - run: pnpm publish --access public --no-git-checks
+        working-directory: aws
         env:
           NODE_AUTH_TOKEN: ${{ secrets.HTSGET_RS_DEPLOY_PUBLISH_TOKEN }}
