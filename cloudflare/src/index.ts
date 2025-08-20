@@ -27,8 +27,8 @@ export class MyContainer extends Container<EnvWithCustomVariables> {
       R2_BUCKET: env.R2_BUCKET,
       HTSGET_LOCATIONS: env.HTSGET_LOCATIONS,
       AWS_REGION: "auto", // Otherwise S3 sdk will error out: ResolveEndpointError { message: "A region must be set when sending requests to S3. }. Can also be safely set to 'us-east-1'"
-      RUST_LOG:
-        "trace,htsget_lambda=trace,htsget_lambda=trace,htsget_config=trace,htsget_http=trace,htsget_search=trace,htsget_test=trace",
+      // RUST_LOG:
+      //   "trace,htsget_lambda=trace,htsget_lambda=trace,htsget_config=trace,htsget_http=trace,htsget_search=trace,htsget_test=trace",
       LOG_SENSITIVE_BODIES: "false", // aws-sdk-rust will show ALL trace info
       LOG_SIGNABLE_BODY: "false", // will log sensitive data
     };
