@@ -87,11 +87,12 @@ export interface HtsgetLambdaProps {
 
   /**
    * Manually specify an `HttpApi`. This will not create a `HostedZone`, any Route53 records, certificates,
-   * or authorizers, and will instead rely on the existing `HttpApi`.
+   * or authorizers, and will instead rely on the existing `HttpApi`. If set to null then NO
+   * HTTP entrypoint will be deployed at all (only the lambda).
    *
    * @defaultValue undefined
    */
-  httpApi?: IHttpApi;
+  httpApi?: IHttpApi | null;
 
   /**
    * Use the provided hosted zone instead of looking it up from the domain name.
