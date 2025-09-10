@@ -12,33 +12,40 @@ export interface HtsgetVpcLatticeLambdaProps {
    */
   htsgetConfig?: HtsgetConfig;
 
-  /**
-   * The git reference to fetch from the htsget-rs repo.
-   *
-   * @defaultValue "main"
-   */
-  gitReference?: string;
+  build: {
+    /**
+     * The git reference to fetch from the htsget-rs repo.
+     *
+     * @defaultValue "main"
+     */
+    gitReference?: string;
 
-  /**
-   * Whether to force a git clone for every build. If this is false, then the git repo is only cloned once
-   * for every git reference in a temporary directory. Otherwise, the repo is cloned every time.
-   *
-   * @defaultValue false
-   */
-  gitForceClone?: boolean;
+    /**
+     * Whether to force a git clone for every build. If this is false, then the git repo is only cloned once
+     * for every git reference in a temporary directory. Otherwise, the repo is cloned every time.
+     *
+     * @defaultValue false
+     */
+    gitForceClone?: boolean;
 
-  /**
-   * Override any cargo lambda flags for the build. By default, features are resolved automatically based on the
-   * config and `HtsgetLocation[]`. This option overrides that and any automatically added flags.
-   *
-   * @defaultValue undefined
-   */
-  cargoLambdaFlags?: string[];
+    /**
+     * Override any cargo lambda flags for the build. By default, features are resolved automatically based on the
+     * config and `HtsgetLocation[]`. This option overrides that and any automatically added flags.
+     *
+     * @defaultValue undefined
+     */
+    cargoLambdaFlags?: string[];
 
-  /**
-   * Specify a VPC for the Lambda function, or specify the name of the VPC to lookup.
-   */
-  vpcOrName: string | IVpc;
+    /**
+     * Override the environment variables used to build htsget. Note that this only adds environment variables that
+     * get used to build htsget-rs with `cargo`. It has no effect on the environment variables that htsget-rs has when
+     * the Lambda function is deployed. In general, leave this undefined unless there is a specific reason to override
+     * the build environment.
+     *
+     * @defaultValue undefined
+     */
+    buildEnvironment?: Record<string, string>;
+  };
 
   /**
    * How to name the VPC Lattice service.
@@ -62,6 +69,11 @@ export interface HtsgetVpcLatticeLambdaProps {
   };
 
   /**
+   * Specify a VPC for the Lambda function, or specify the name of the VPC to lookup.
+   */
+  vpcOrName: string | IVpc;
+
+  /**
    * Use the provided role instead of creating one. This will ignore any configuration related to permissions for
    * buckets and secrets, and rely on the existing role.
    *
@@ -70,14 +82,9 @@ export interface HtsgetVpcLatticeLambdaProps {
   role?: IRole;
 
   /**
-   * Override the environment variables used to build htsget. Note that this only adds environment variables that
-   * get used to build htsget-rs with `cargo`. It has no effect on the environment variables that htsget-rs has when
-   * the Lambda function is deployed. In general, leave this undefined unless there is a specific reason to override
-   * the build environment.
-   *
-   * @defaultValue undefined
+   * A list of AWS account ids that the VPC Lattice service will be shared to using RAM.
    */
-  buildEnvironment?: Record<string, string>;
+  destinationAccounts: string[];
 }
 
 /**

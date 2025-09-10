@@ -17,6 +17,7 @@ import { IVpc, SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import * as vpclattice from "aws-cdk-lib/aws-vpclattice";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as ram from "aws-cdk-lib/aws-ram";
 
 /**
  * @ignore
@@ -46,12 +47,12 @@ export class HtsgetVpcLatticeLambda extends Construct {
       lambdaRole = this.createRole(id);
     }
 
-    props.buildEnvironment ??= {};
+    props.build.buildEnvironment ??= {};
 
     const htsgetLambda = new RustFunction(this, "Function", {
       gitRemote: "https://github.com/umccr/htsget-rs",
-      gitForceClone: props.gitForceClone,
-      gitReference: props.gitReference,
+      gitForceClone: props.build.gitForceClone,
+      gitReference: props.build.gitReference,
       binaryName: "htsget-lambda",
       bundling: {
         environment: {
@@ -59,9 +60,9 @@ export class HtsgetVpcLatticeLambda extends Construct {
           CARGO_PROFILE_RELEASE_LTO: "true",
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
           AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH: "true",
-          ...props.buildEnvironment,
+          ...props.build.buildEnvironment,
         },
-        cargoLambdaFlags: props.cargoLambdaFlags ?? [
+        cargoLambdaFlags: props.build.cargoLambdaFlags ?? [
           this.resolveFeatures(props.htsgetConfig, false),
         ],
       },
@@ -140,6 +141,12 @@ export class HtsgetVpcLatticeLambda extends Construct {
     new vpclattice.CfnServiceNetworkVpcAssociation(this, "VpcAssociation", {
       serviceNetworkIdentifier: serviceNetwork.attrId,
       vpcIdentifier: vpc.vpcId,
+    });
+
+    new ram.CfnResourceShare(this, "VpcServiceShare", {
+      name: "htsget-service-network",
+      resourceArns: [serviceNetwork.attrArn],
+      principals: props.destinationAccounts,
     });
 
     htsgetLambda.addPermission("VpcLatticeInvoke", {
@@ -425,9 +432,7 @@ export class HtsgetVpcLatticeLambda extends Construct {
   private isIVpc(obj: any): obj is IVpc {
     return (
       obj &&
-      "vpcId" in obj &&
       typeof obj.vpcId === "string" &&
-      "vpcCidrBlock" in obj &&
       typeof obj.vpcCidrBlock === "string"
     );
   }

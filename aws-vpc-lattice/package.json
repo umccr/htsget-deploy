@@ -1,31 +1,25 @@
 {
   "name": "htsget-lambda",
   "version": "0.9.4",
-  "bin": {
-    "htsget_app": "bin/htsget-lambda.js"
-  },
   "dependencies": {
-    "cargo-lambda-cdk": "^0.0.33"
+    "cargo-lambda-cdk": "0.0.33"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.112.0"
   },
   "devDependencies": {
-    "@types/node": "^24.2.1",
-    "aws-cdk": "2.1025.0",
+    "@types/node": "24.3.1",
+    "aws-cdk": "2.1029.0",
     "aws-cdk-lib": "2.211.0",
     "constructs": "10.4.2",
     "prettier": "3.6.2",
-    "typedoc": "^0.28.10",
-    "typedoc-plugin-markdown": "^4.8.1",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   },
   "scripts": {
     "build": "tsc",
     "cdk": "cdk",
     "prettier": "prettier",
     "run": "cdk deploy",
-    "watch": "tsc -w",
-    "typedoc": "typedoc --gitRevision main --plugin typedoc-plugin-markdown"
+    "watch": "tsc -w"
   }
 }

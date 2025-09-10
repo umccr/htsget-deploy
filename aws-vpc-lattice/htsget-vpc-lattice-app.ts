@@ -10,18 +10,22 @@ new HtsgetVpcLatticeStack(
   stackId,
   {
     vpcOrName: "main-vpc",
-    naming: {
-      subDomain: "htsget-vpc-lattice",
-      domain: "dev.umccr.org",
-      certificateArn:
-        "arn:aws:acm:ap-southeast-2:843407916570:certificate/aa9a1385-7f72-4f1f-98a5-a5da2eff653b",
-    },
-    gitReference: "feature/aws-vpc-lattice-support",
+    destinationAccounts: ["534840902377"],
     htsgetConfig: {
       environment_override: {
         HTSGET_LOCATIONS:
           "[{regex=.*, substitution_string=$0/$0.hard-filtered, backend={ kind=S3, bucket=umccr-10g-data-dev }} ]",
       },
+    },
+    build: {
+      gitReference: "feature/aws-vpc-lattice-support",
+      gitForceClone: true,
+    },
+    naming: {
+      subDomain: "htsget-vpc-lattice",
+      domain: "dev.umccr.org",
+      certificateArn:
+        "arn:aws:acm:ap-southeast-2:843407916570:certificate/aa9a1385-7f72-4f1f-98a5-a5da2eff653b",
     },
   },
   {
