@@ -1,8 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "node:path";
 import { tmpdir } from "os";
-import * as vpclattice from "aws-cdk-lib/aws-vpclattice";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 
 import {
   Aws,
@@ -60,7 +58,6 @@ import {
   JwtConfig,
 } from "./config";
 import { exec } from "cargo-lambda-cdk/lib/util";
-import { SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 
 /**
  * @ignore
@@ -74,11 +71,7 @@ export class HtsgetLambda extends Construct {
       locations: [],
     };
 
-    const vpc = Vpc.fromLookup(this, "vpc", {
-      vpcName: "main-vpc",
-    });
-
-    let httpApi: IHttpApi | null = null;
+    let httpApi: IHttpApi;
     if (props.httpApi !== undefined) {
       httpApi = props.httpApi;
     } else {
@@ -103,10 +96,9 @@ export class HtsgetLambda extends Construct {
     props.buildEnvironment ??= {};
 
     const htsgetLambda = new RustFunction(this, "Function", {
-      //gitRemote: "https://github.com/umccr/htsget-rs",
-      //gitForceClone: props.gitForceClone,
-      //gitReference: props.gitReference,
-      manifestPath: "../../htsget-rs/htsget-lambda",
+      gitRemote: "https://github.com/umccr/htsget-rs",
+      gitForceClone: props.gitForceClone,
+      gitReference: props.gitReference,
       binaryName: "htsget-lambda",
       bundling: {
         environment: {
@@ -124,7 +116,7 @@ export class HtsgetLambda extends Construct {
       timeout: Duration.seconds(28),
       architecture: Architecture.ARM_64,
       role: lambdaRole ?? props.role,
-      vpc: vpc,
+      vpc: props.vpc,
     });
 
     let bucket: Bucket | undefined = undefined;
@@ -155,199 +147,25 @@ export class HtsgetLambda extends Construct {
       htsgetLambda.addEnvironment(key, env[key]);
     }
     htsgetLambda.addEnvironment("RUST_LOG", "trace");
-    // logs are going to cloudwatch so no point in having formatting - so send as json
-    htsgetLambda.addEnvironment("HTSGET_FORMATTING_STYLE", "Json");
 
-    //guard.allow_reference_names = ["chr1"]
     const httpIntegration = new HttpLambdaIntegration(
       "Integration",
       htsgetLambda,
     );
 
-    if (httpApi !== null) {
-      [HttpMethod.GET, HttpMethod.POST].map((method) => {
-        const path = "/{proxy+}";
-        new HttpRoute(this, `${method}${path}`, {
-          httpApi: httpApi,
-          routeKey: HttpRouteKey.with(path, method),
-          integration: httpIntegration,
-        });
+    [HttpMethod.GET, HttpMethod.POST].map((method) => {
+      const path = "/{proxy+}";
+      new HttpRoute(this, `${method}${path}`, {
+        httpApi: httpApi,
+        routeKey: HttpRouteKey.with(path, method),
+        integration: httpIntegration,
       });
+    });
 
-      if (httpApi.defaultAuthorizer === undefined) {
-        console.warn(
-          "This will create an instance of htsget-rs that is public! Anyone will be able to query the server without authorization.",
-        );
-      }
-    } else {
-      const serviceNetwork = new vpclattice.CfnServiceNetwork(
-        this,
-        "HtsgetServiceNetwork",
-        {
-          authType: "NONE", // or 'AWS_IAM' for IAM-based auth
-        },
+    if (httpApi.defaultAuthorizer === undefined) {
+      console.warn(
+        "This will create an instance of htsget-rs that is public! Anyone will be able to query the server without authorization.",
       );
-
-      const service = new vpclattice.CfnService(this, "LatticeService", {
-        authType: "NONE",
-      });
-
-      const targetGroup = new vpclattice.CfnTargetGroup(
-        this,
-        "HtsgetLambdaTargetGroup",
-        {
-          type: "LAMBDA", // Or vpclattice.TargetGroupType.LAMBDA in newer CDK versions
-          targets: [
-            {
-              id: htsgetLambda.functionArn,
-            },
-          ],
-          config: {
-            lambdaEventStructureVersion: "V2",
-            // Lambda target groups typically don't require extensive configuration here,
-            // as the target is directly the Lambda function.
-          },
-        },
-      );
-
-      new vpclattice.CfnListener(this, "HtsgetListener", {
-        serviceIdentifier: service.attrArn,
-        port: 443,
-        protocol: "HTTPS",
-        defaultAction: {
-          forward: {
-            targetGroups: [{ targetGroupIdentifier: targetGroup.attrArn }],
-          },
-        },
-      });
-
-      new vpclattice.CfnServiceNetworkServiceAssociation(
-        this,
-        "ServiceNetworkAssociation",
-        {
-          serviceIdentifier: service.attrId,
-          serviceNetworkIdentifier: serviceNetwork.attrId,
-        },
-      );
-
-      new vpclattice.CfnServiceNetworkVpcAssociation(this, "VpcAssociation", {
-        serviceNetworkIdentifier: serviceNetwork.attrId,
-        vpcIdentifier: vpc.vpcId,
-      });
-
-      htsgetLambda.addPermission("VpcLatticeInvoke", {
-        principal: new ServicePrincipal("vpc-lattice.amazonaws.com"),
-        action: "lambda:InvokeFunction",
-        sourceArn: targetGroup.attrArn,
-      });
-
-      new lambda.Function(this, "TestLambda", {
-        runtime: lambda.Runtime.NODEJS_22_X,
-        handler: "index.handler",
-        vpc: vpc,
-        vpcSubnets: {
-          subnetType: SubnetType.PRIVATE_ISOLATED,
-        },
-        environment: {
-          LATTICE_SERVICE_DNS: service.attrDnsEntryDomainName,
-          LATTICE_SERVICE_ID: service.attrId,
-        },
-        code: lambda.Code.fromInline(`
-        const https = require('https');
-
-        exports.handler = async (event) => {
-          console.log('Test Lambda invoked');
-
-          try {
-            const latticeHost = process.env.LATTICE_SERVICE_DNS;
-            const path = '/variants/HG00096';
-
-            console.log('Calling VPC Lattice service:', \`https://\${latticeHost}\${path}\`);
-
-            const options = {
-              hostname: latticeHost,
-              port: 443,
-              path: path,
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            };
-
-            const response = await new Promise((resolve, reject) => {
-              const req = https.request(options, (res) => {
-                let data = '';
-                res.on('data', chunk => data += chunk);
-                res.on('end', () => resolve({
-                  statusCode: res.statusCode,
-                  body: data,
-                  headers: res.headers
-                }));
-              });
-
-              req.on('error', (error) => {
-                console.error('HTTPS request error:', error);
-                reject(error);
-              });
-
-              req.setTimeout(10000, () => {
-                req.destroy();
-                reject(new Error('Request timeout'));
-              });
-
-              req.end();
-            });
-
-            console.log('VPC Lattice response:', response);
-
-            return {
-              statusCode: 200,
-              body: JSON.stringify({
-                message: 'Successfully called VPC Lattice service',
-                latticeResponse: {
-                  statusCode: response.statusCode,
-                  body: JSON.parse(response.body),
-                  timestamp: new Date().toISOString()
-                }
-              })
-            };
-
-          } catch (error) {
-            console.error('Error calling VPC Lattice:', error);
-            return {
-              statusCode: 500,
-              body: JSON.stringify({
-                error: 'Failed to call VPC Lattice service',
-                message: error.message,
-                stack: error.stack
-              })
-            };
-          }
-        };
-      `),
-        description: "Test Lambda to call VPC Lattice service-info endpoint",
-        timeout: Duration.seconds(30),
-      });
-
-      new CfnOutput(this, "ServiceNetworkId", {
-        value: serviceNetwork.attrId,
-        description: "VPC Lattice Service Network ID",
-      });
-
-      new CfnOutput(this, "ServiceId", {
-        value: service.attrId,
-        description: "VPC Lattice Service ID",
-      });
-
-      //new CfnOutput(this, 'ServiceDnsEntry', {
-      //  value: service.dnsEntry?.toString() ?? 'Not available',
-      //  description: 'Service DNS endpoint'
-      //});
-
-      new CfnOutput(this, "LambdaFunctionArn", {
-        value: htsgetLambda.functionArn,
-        description: "Lambda function ARN",
-      });
     }
   }
 
@@ -520,12 +338,6 @@ export class HtsgetLambda extends Construct {
     return new Role(this, "Role", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       description: "Lambda execution role for " + id,
-      managedPolicies: [
-        ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AWSLambdaVPCAccessExecutionRole",
-        ),
-        ManagedPolicy.fromAwsManagedPolicyName("AmazonS3ReadOnlyAccess"),
-      ],
     });
   }
 
