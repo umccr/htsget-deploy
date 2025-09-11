@@ -30,7 +30,8 @@ new HtsgetVpcLatticeStack(
   },
   {
     stackName: stackId,
-    description: "A stack deploying htsget-rs with VPC Lattice",
+    description:
+      "A stack deploying htsget-rs with VPC Lattice in a UMCCR environment",
     tags: {
       Stack: stackId,
     },

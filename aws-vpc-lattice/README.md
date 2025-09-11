@@ -11,15 +11,20 @@ Code features it has:
 To deploy:
 
 1. Authenticate to your AWS account (preferably using SSO).
-2. Modify the [`htsget-vpc-lattice-app.ts`][htsget-vpc-lattice-app], according to your preferences. All options are documented at [`docs/CONFIG.md`][docs-config].
+2. Modify the [`htsget-vpc-lattice-app.ts`][htsget-vpc-lattice-app], according to your preferences.
 3. Run `bunx cdk deploy`.
 
 ### Does it work?
 
-A simple `curl` command should be able to determine that:
+The VPC Lattice service network will be shared to the list of AWS accounts
+in the app settings. You will need to accept the RAM share in those
+accounts in order to then construct a service network client.
+
+Once the service network in the other account is associated with a VPC (say) -
+then from that VPC a simple `curl` command should be able to determine that:
 
 ```sh
-curl "https://htsget.ga4gh-demo.org/reads/service-info"
+curl "https://<host>/reads/service-info"
 ```
 
 Should return a response similar to the following:
