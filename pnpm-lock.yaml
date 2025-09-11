@@ -11,6 +11,18 @@ importers:
       '@eslint/js':
         specifier: ^9.33.0
         version: 9.33.0
+      '@types/node':
+        specifier: ^24.2.1
+        version: 24.2.1
+      eslint:
+        specifier: ^9.33.0
+        version: 9.33.0
+      prettier:
+        specifier: ^3.6.2
+        version: 3.6.2
+      typescript:
+        specifier: 5.8.3
+        version: 5.8.3
       typescript-eslint:
         specifier: ^8.39.1
         version: 8.39.1(eslint@9.33.0)(typescript@5.8.3)
@@ -21,27 +33,18 @@ importers:
         specifier: ^0.0.33
         version: 0.0.33(aws-cdk-lib@2.211.0(constructs@10.4.2))(constructs@10.4.2)
     devDependencies:
-      '@eslint/js':
-        specifier: ^9.33.0
-        version: 9.33.0
       '@types/node':
         specifier: ^24.2.1
         version: 24.2.1
       aws-cdk:
-        specifier: 2.1025.0
-        version: 2.1025.0
+        specifier: 2.112.0
+        version: 2.112.0
       aws-cdk-lib:
-        specifier: 2.211.0
+        specifier: ^2.210.0
         version: 2.211.0(constructs@10.4.2)
       constructs:
         specifier: 10.4.2
         version: 10.4.2
-      eslint:
-        specifier: ^9.33.0
-        version: 9.33.0
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
       typedoc:
         specifier: ^0.28.10
         version: 0.28.10(typescript@5.8.3)
@@ -51,12 +54,6 @@ importers:
       typescript:
         specifier: 5.8.3
         version: 5.8.3
-      typescript-eslint:
-        specifier: ^8.39.1
-        version: 8.39.1(eslint@9.33.0)(typescript@5.8.3)
-      wrangler:
-        specifier: ^4.28.1
-        version: 4.30.0
 
   cloudflare:
     dependencies:
@@ -67,24 +64,12 @@ importers:
         specifier: 4.9.0
         version: 4.9.0
     devDependencies:
-      '@eslint/js':
-        specifier: ^9.33.0
-        version: 9.33.0
       '@types/node':
         specifier: ^24.2.1
         version: 24.2.1
-      eslint:
-        specifier: ^9.33.0
-        version: 9.33.0
-      prettier:
-        specifier: ^3.6.2
-        version: 3.6.2
       typescript:
         specifier: 5.8.3
         version: 5.8.3
-      typescript-eslint:
-        specifier: ^8.39.1
-        version: 8.39.1(eslint@9.33.0)(typescript@5.8.3)
       wrangler:
         specifier: ^4.28.1
         version: 4.30.0
@@ -647,9 +632,9 @@ packages:
       - yaml
       - mime-types
 
-  aws-cdk@2.1025.0:
-    resolution: {integrity: sha512-qKYM+RG5+U/UbGpjTt8ZaxBEfKJMPdOmtPtFNidsIGlrdIWSIFdNcFYi13zo33FkMk6ZFA6yBnjfDry3fNR+hQ==}
-    engines: {node: '>= 18.0.0'}
+  aws-cdk@2.112.0:
+    resolution: {integrity: sha512-b/8htaasb/WQUg+Wg+2N+5ztLeXDL+2UwlaKSeJStz6FG1bzm7n02yLu8RUbeHxbZGkb4P0IMiYqU/LIV5/Jow==}
+    engines: {node: '>= 14.15.0'}
     hasBin: true
 
   balanced-match@1.0.2:
@@ -1648,7 +1633,7 @@ snapshots:
       '@aws-cdk/cloud-assembly-schema': 48.4.0
       constructs: 10.4.2
 
-  aws-cdk@2.1025.0:
+  aws-cdk@2.112.0:
     optionalDependencies:
       fsevents: 2.3.2
 
