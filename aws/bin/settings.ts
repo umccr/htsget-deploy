@@ -6,4 +6,8 @@ import { HtsgetLambdaProps } from "../index";
 export const SETTINGS: HtsgetLambdaProps = {
   domain: "dev.umccr.org",
   copyTestData: true,
+  gitReference: "htsget-lambda-v0.7.4",
+  bucketName: "htsget-data",
+  functionName: "htsget-function",
+  roleName: "htsget-role",
 };
