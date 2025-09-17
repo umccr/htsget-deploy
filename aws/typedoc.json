@@ -6,5 +6,6 @@
   "plugin": "typedoc-plugin-markdown",
   "readme": "none",
   "entryFileName": "CONFIG.md",
-  "hideGroupHeadings": true
+  "hideGroupHeadings": true,
+  "out": "docs/config"
 }

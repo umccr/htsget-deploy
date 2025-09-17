@@ -68,7 +68,7 @@ npx typedoc
 ```
 
 [htsget-npm]: https://www.npmjs.com/package/htsget-lambda
-[docs-config]: docs/CONFIG.md
+[docs-config]: docs/config/CONFIG.md
 [htsget-settings]: bin/settings.ts
 [cargo-lambda]: https://github.com/cargo-lambda/cargo-lambda
 [htsget-rs]: https://github.com/umccr/htsget-rs
