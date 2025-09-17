@@ -79,6 +79,20 @@ export interface HtsgetLambdaProps {
   copyTestData?: boolean;
 
   /**
+   * The name of the bucket to create when using `copyTestData`. Defaults to the auto-generated CDK construct name.
+   *
+   * @defaultValue undefined
+   */
+  bucketName?: string;
+
+  /**
+   * The name of the Lambda function. Defaults to the auto-generated CDK construct name.
+   *
+   * @defaultValue undefined
+   */
+  functionName?: string;
+
+  /**
    * Optionally specify a VPC for the Lambda function.
    *
    * @defaultValue undefined
@@ -94,6 +108,14 @@ export interface HtsgetLambdaProps {
   httpApi?: IHttpApi;
 
   /**
+   * The arn of the certificate to use. This will not create a `Certificate` if specified, and will instead lookup
+   * an existing one.
+   *
+   * @defaultValue undefined
+   */
+  certificateArn?: string;
+
+  /**
    * Use the provided hosted zone instead of looking it up from the domain name.
    *
    * @defaultValue undefined
@@ -107,6 +129,13 @@ export interface HtsgetLambdaProps {
    * @defaultValue undefined
    */
   role?: IRole;
+
+  /**
+   * The name of the role for the Lambda function. Defaults to the auto-generated CDK construct name.
+   *
+   * @defaultValue undefined
+   */
+  roleName?: string;
 
   /**
    * Override the environment variables used to build htsget. Note that this only adds environment variables that

@@ -31,29 +31,29 @@ importers:
     dependencies:
       cargo-lambda-cdk:
         specifier: ^0.0.33
-        version: 0.0.33(aws-cdk-lib@2.211.0(constructs@10.4.2))(constructs@10.4.2)
+        version: 0.0.33(aws-cdk-lib@2.215.0(constructs@10.4.2))(constructs@10.4.2)
     devDependencies:
       '@types/node':
-        specifier: ^24.2.1
-        version: 24.2.1
+        specifier: ^24.5.1
+        version: 24.5.1
       aws-cdk:
-        specifier: 2.112.0
-        version: 2.112.0
+        specifier: ^2.1029.1
+        version: 2.1029.1
       aws-cdk-lib:
-        specifier: ^2.210.0
-        version: 2.211.0(constructs@10.4.2)
+        specifier: ^2.112.0
+        version: 2.215.0(constructs@10.4.2)
       constructs:
         specifier: 10.4.2
         version: 10.4.2
       typedoc:
-        specifier: ^0.28.10
-        version: 0.28.10(typescript@5.8.3)
+        specifier: ^0.28.13
+        version: 0.28.13(typescript@5.9.2)
       typedoc-plugin-markdown:
         specifier: ^4.8.1
-        version: 4.8.1(typedoc@0.28.10(typescript@5.8.3))
+        version: 4.8.1(typedoc@0.28.13(typescript@5.9.2))
       typescript:
-        specifier: 5.8.3
-        version: 5.8.3
+        specifier: 5.9.2
+        version: 5.9.2
 
   cloudflare:
     dependencies:
@@ -82,8 +82,8 @@ packages:
   '@aws-cdk/asset-node-proxy-agent-v6@2.1.0':
     resolution: {integrity: sha512-7bY3J8GCVxLupn/kNmpPc5VJz8grx+4RKfnnJiO1LG+uxkZfANZG3RMHhE+qQxxwkyQ9/MfPtTpf748UhR425A==}
 
-  '@aws-cdk/cloud-assembly-schema@48.4.0':
-    resolution: {integrity: sha512-pWk5oucfA4Ywt0g5sjr8uABzTBNBrMfxVkHqc7b9jUYlMoY9CzCiOAcCdVLaqrtFp63a+z0M4s1sf6gaIkbeaA==}
+  '@aws-cdk/cloud-assembly-schema@48.9.0':
+    resolution: {integrity: sha512-wZsFnrLLzowYA26yfV6Xe7h6ZAYXZwsAQLLBowxhVdR5NcJIeCWI0dAavNdrUdZgiEbYU4rkUX3AXYI+nC6FTA==}
     engines: {node: '>= 18.0.0'}
     bundledDependencies:
       - jsonschema
@@ -330,8 +330,8 @@ packages:
     resolution: {integrity: sha512-Z5kJ+wU3oA7MMIqVR9tyZRtjYPr4OC004Q4Rw7pgOKUOKkJfZ3O24nz3WYfGRpMDNmcOi3TwQOmgm7B7Tpii0w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@gerrit0/mini-shiki@3.9.2':
-    resolution: {integrity: sha512-Tvsj+AOO4Z8xLRJK900WkyfxHsZQu+Zm1//oT1w443PO6RiYMoq/4NGOhaNuZoUMYsjKIAPVQ6eOFMddj6yphQ==}
+  '@gerrit0/mini-shiki@3.12.2':
+    resolution: {integrity: sha512-HKZPmO8OSSAAo20H2B3xgJdxZaLTwtlMwxg0967scnrDlPwe6j5+ULGHyIqwgTbFCn9yv/ff8CmfWZLE9YKBzA==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -489,17 +489,17 @@ packages:
   '@poppinss/exception@1.2.2':
     resolution: {integrity: sha512-m7bpKCD4QMlFCjA/nKTs23fuvoVFoA83brRKmObCUNmi/9tVu8Ve3w4YQAnJu4q3Tjf5fr685HYIC/IA2zHRSg==}
 
-  '@shikijs/engine-oniguruma@3.9.2':
-    resolution: {integrity: sha512-Vn/w5oyQ6TUgTVDIC/BrpXwIlfK6V6kGWDVVz2eRkF2v13YoENUvaNwxMsQU/t6oCuZKzqp9vqtEtEzKl9VegA==}
+  '@shikijs/engine-oniguruma@3.12.2':
+    resolution: {integrity: sha512-hozwnFHsLvujK4/CPVHNo3Bcg2EsnG8krI/ZQ2FlBlCRpPZW4XAEQmEwqegJsypsTAN9ehu2tEYe30lYKSZW/w==}
 
-  '@shikijs/langs@3.9.2':
-    resolution: {integrity: sha512-X1Q6wRRQXY7HqAuX3I8WjMscjeGjqXCg/Sve7J2GWFORXkSrXud23UECqTBIdCSNKJioFtmUGJQNKtlMMZMn0w==}
+  '@shikijs/langs@3.12.2':
+    resolution: {integrity: sha512-bVx5PfuZHDSHoBal+KzJZGheFuyH4qwwcwG/n+MsWno5cTlKmaNtTsGzJpHYQ8YPbB5BdEdKU1rga5/6JGY8ww==}
 
-  '@shikijs/themes@3.9.2':
-    resolution: {integrity: sha512-6z5lBPBMRfLyyEsgf6uJDHPa6NAGVzFJqH4EAZ+03+7sedYir2yJBRu2uPZOKmj43GyhVHWHvyduLDAwJQfDjA==}
+  '@shikijs/themes@3.12.2':
+    resolution: {integrity: sha512-fTR3QAgnwYpfGczpIbzPjlRnxyONJOerguQv1iwpyQZ9QXX4qy/XFQqXlf17XTsorxnHoJGbH/LXBvwtqDsF5A==}
 
-  '@shikijs/types@3.9.2':
-    resolution: {integrity: sha512-/M5L0Uc2ljyn2jKvj4Yiah7ow/W+DJSglVafvWAJ/b8AZDeeRAdMu3c2riDzB7N42VD+jSnWxeP9AKtd4TfYVw==}
+  '@shikijs/types@3.12.2':
+    resolution: {integrity: sha512-K5UIBzxCyv0YoxN3LMrKB9zuhp1bV+LgewxuVwHdl4Gz5oePoUFrr9EfgJlGlDeXCU1b/yhdnXeuRvAnz8HN8Q==}
 
   '@shikijs/vscode-textmate@10.0.2':
     resolution: {integrity: sha512-83yeghZ2xxin3Nj8z1NMd/NCuca+gsYXswywDy5bHvwlWL8tpTQmzGeUuHd9FC3E/SBEMvzJRwWEOz5gGes9Qg==}
@@ -522,6 +522,9 @@ packages:
 
   '@types/node@24.2.1':
     resolution: {integrity: sha512-DRh5K+ka5eJic8CjH7td8QpYEV6Zo10gfRkjHCO3weqZHWDtAaSTFtl4+VMqOJ4N5jcuhZ9/l+yy8rVgw7BQeQ==}
+
+  '@types/node@24.5.1':
+    resolution: {integrity: sha512-/SQdmUP2xa+1rdx7VwB9yPq8PaKej8TD5cQ+XfKDPWWC+VDJU4rvVVagXqKUzhKjtFoNA8rXDJAkCxQPAe00+Q==}
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
@@ -614,8 +617,8 @@ packages:
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
 
-  aws-cdk-lib@2.211.0:
-    resolution: {integrity: sha512-wrEPu25572HUJwySzL/qf/fFM+a22X7HYpq1uqcjAn4sVL+h52WjVjnI7rDAuhBp6efX6+Jhmw7jZDMql4/+Cw==}
+  aws-cdk-lib@2.215.0:
+    resolution: {integrity: sha512-DvRiUEsZSc4voeqfkYGrjP0f4NJ1u94JvbVCUQ+Fci4rf25xLRSEVPzyaH9Tf7V38i0Otts1+u7seunqe+R19g==}
     engines: {node: '>= 18.0.0'}
     peerDependencies:
       constructs: ^10.0.0
@@ -632,9 +635,9 @@ packages:
       - yaml
       - mime-types
 
-  aws-cdk@2.112.0:
-    resolution: {integrity: sha512-b/8htaasb/WQUg+Wg+2N+5ztLeXDL+2UwlaKSeJStz6FG1bzm7n02yLu8RUbeHxbZGkb4P0IMiYqU/LIV5/Jow==}
-    engines: {node: '>= 14.15.0'}
+  aws-cdk@2.1029.1:
+    resolution: {integrity: sha512-etMnV7xwm1pBKOXl5zZKtNRt7ZIMocEe+GrZHVVp6oHsXqpPDi7iyPm7HR3CV1xe9yFjs3hZiHDebg+ONpccuw==}
+    engines: {node: '>= 18.0.0'}
     hasBin: true
 
   balanced-match@1.0.2:
@@ -1088,8 +1091,8 @@ packages:
     peerDependencies:
       typedoc: 0.28.x
 
-  typedoc@0.28.10:
-    resolution: {integrity: sha512-zYvpjS2bNJ30SoNYfHSRaFpBMZAsL7uwKbWwqoCNFWjcPnI3e/mPLh2SneH9mX7SJxtDpvDgvd9/iZxGbo7daw==}
+  typedoc@0.28.13:
+    resolution: {integrity: sha512-dNWY8msnYB2a+7Audha+aTF1Pu3euiE7ySp53w8kEsXoYw7dMouV5A1UsTUY345aB152RHnmRMDiovuBi7BD+w==}
     engines: {node: '>= 18', pnpm: '>= 10'}
     hasBin: true
     peerDependencies:
@@ -1107,6 +1110,11 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  typescript@5.9.2:
+    resolution: {integrity: sha512-CWBzXQrc/qOkhidw1OzBTQuYRbfyxDXJMVJ1XNwUHGROVmuaeiEm3OslpZ1RV96d7SKKjZKrSJu3+t/xlw3R9A==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   uc.micro@2.1.0:
     resolution: {integrity: sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==}
 
@@ -1115,6 +1123,9 @@ packages:
 
   undici-types@7.10.0:
     resolution: {integrity: sha512-t5Fy/nfn+14LuOc2KNYg75vZqClpAiqscVvMygNnlsHBFpSXdJaYtXMcdNLpl/Qvc3P2cB3s6lOV51nqsFq4ag==}
+
+  undici-types@7.12.0:
+    resolution: {integrity: sha512-goOacqME2GYyOZZfb5Lgtu+1IDmAlAEu5xnD3+xTzS10hT0vzpf0SPjkXwAw9Jm+4n/mQGDP3LO8CPbYROeBfQ==}
 
   undici@7.13.0:
     resolution: {integrity: sha512-l+zSMssRqrzDcb3fjMkjjLGmuiiK2pMIcV++mJaAc9vhjSGpvM7h43QgP+OAMb1GImHmbPyG2tBXeuyG5iY4gA==}
@@ -1186,7 +1197,7 @@ snapshots:
 
   '@aws-cdk/asset-node-proxy-agent-v6@2.1.0': {}
 
-  '@aws-cdk/cloud-assembly-schema@48.4.0': {}
+  '@aws-cdk/cloud-assembly-schema@48.9.0': {}
 
   '@cloudflare/containers@0.0.25': {}
 
@@ -1343,12 +1354,12 @@ snapshots:
       '@eslint/core': 0.15.2
       levn: 0.4.1
 
-  '@gerrit0/mini-shiki@3.9.2':
+  '@gerrit0/mini-shiki@3.12.2':
     dependencies:
-      '@shikijs/engine-oniguruma': 3.9.2
-      '@shikijs/langs': 3.9.2
-      '@shikijs/themes': 3.9.2
-      '@shikijs/types': 3.9.2
+      '@shikijs/engine-oniguruma': 3.12.2
+      '@shikijs/langs': 3.12.2
+      '@shikijs/themes': 3.12.2
+      '@shikijs/types': 3.12.2
       '@shikijs/vscode-textmate': 10.0.2
 
   '@humanfs/core@0.19.1': {}
@@ -1472,20 +1483,20 @@ snapshots:
 
   '@poppinss/exception@1.2.2': {}
 
-  '@shikijs/engine-oniguruma@3.9.2':
+  '@shikijs/engine-oniguruma@3.12.2':
     dependencies:
-      '@shikijs/types': 3.9.2
+      '@shikijs/types': 3.12.2
       '@shikijs/vscode-textmate': 10.0.2
 
-  '@shikijs/langs@3.9.2':
+  '@shikijs/langs@3.12.2':
     dependencies:
-      '@shikijs/types': 3.9.2
+      '@shikijs/types': 3.12.2
 
-  '@shikijs/themes@3.9.2':
+  '@shikijs/themes@3.12.2':
     dependencies:
-      '@shikijs/types': 3.9.2
+      '@shikijs/types': 3.12.2
 
-  '@shikijs/types@3.9.2':
+  '@shikijs/types@3.12.2':
     dependencies:
       '@shikijs/vscode-textmate': 10.0.2
       '@types/hast': 3.0.4
@@ -1507,6 +1518,10 @@ snapshots:
   '@types/node@24.2.1':
     dependencies:
       undici-types: 7.10.0
+
+  '@types/node@24.5.1':
+    dependencies:
+      undici-types: 7.12.0
 
   '@types/unist@3.0.3': {}
 
@@ -1626,14 +1641,14 @@ snapshots:
 
   argparse@2.0.1: {}
 
-  aws-cdk-lib@2.211.0(constructs@10.4.2):
+  aws-cdk-lib@2.215.0(constructs@10.4.2):
     dependencies:
       '@aws-cdk/asset-awscli-v1': 2.2.242
       '@aws-cdk/asset-node-proxy-agent-v6': 2.1.0
-      '@aws-cdk/cloud-assembly-schema': 48.4.0
+      '@aws-cdk/cloud-assembly-schema': 48.9.0
       constructs: 10.4.2
 
-  aws-cdk@2.112.0:
+  aws-cdk@2.1029.1:
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -1656,9 +1671,9 @@ snapshots:
 
   callsites@3.1.0: {}
 
-  cargo-lambda-cdk@0.0.33(aws-cdk-lib@2.211.0(constructs@10.4.2))(constructs@10.4.2):
+  cargo-lambda-cdk@0.0.33(aws-cdk-lib@2.215.0(constructs@10.4.2))(constructs@10.4.2):
     dependencies:
-      aws-cdk-lib: 2.211.0(constructs@10.4.2)
+      aws-cdk-lib: 2.215.0(constructs@10.4.2)
       constructs: 10.4.2
 
   chalk@4.1.2:
@@ -2091,17 +2106,17 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
 
-  typedoc-plugin-markdown@4.8.1(typedoc@0.28.10(typescript@5.8.3)):
+  typedoc-plugin-markdown@4.8.1(typedoc@0.28.13(typescript@5.9.2)):
     dependencies:
-      typedoc: 0.28.10(typescript@5.8.3)
+      typedoc: 0.28.13(typescript@5.9.2)
 
-  typedoc@0.28.10(typescript@5.8.3):
+  typedoc@0.28.13(typescript@5.9.2):
     dependencies:
-      '@gerrit0/mini-shiki': 3.9.2
+      '@gerrit0/mini-shiki': 3.12.2
       lunr: 2.3.9
       markdown-it: 14.1.0
       minimatch: 9.0.5
-      typescript: 5.8.3
+      typescript: 5.9.2
       yaml: 2.8.1
 
   typescript-eslint@8.39.1(eslint@9.33.0)(typescript@5.8.3):
@@ -2117,11 +2132,15 @@ snapshots:
 
   typescript@5.8.3: {}
 
+  typescript@5.9.2: {}
+
   uc.micro@2.1.0: {}
 
   ufo@1.6.1: {}
 
   undici-types@7.10.0: {}
+
+  undici-types@7.12.0: {}
 
   undici@7.13.0: {}
 
