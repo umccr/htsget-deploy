@@ -123,6 +123,13 @@ export interface HtsgetLambdaProps {
   hostedZone?: IHostedZone;
 
   /**
+   * Do not use or create a hosted zone at all.
+   *
+   * @defaultValue false
+   */
+  noHostedZone?: boolean;
+
+  /**
    * Use the provided role instead of creating one. This will ignore any configuration related to permissions for
    * buckets and secrets, and rely on the existing role.
    *

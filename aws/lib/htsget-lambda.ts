@@ -87,6 +87,7 @@ export class HtsgetLambda extends Construct {
         props.subDomain,
         props.hostedZone,
         props.certificateArn,
+        props.noHostedZone,
       );
     }
 
@@ -362,6 +363,7 @@ export class HtsgetLambda extends Construct {
     subDomain?: string,
     hostedZone?: IHostedZone,
     certificateArn?: string,
+    noHostedZone?: boolean,
   ): HttpApi {
     // Add an authorizer if auth is required.
     let authorizer: HttpJwtAuthorizer | undefined = undefined;
@@ -382,52 +384,57 @@ export class HtsgetLambda extends Construct {
       );
     }
 
-    let zone: IHostedZone;
-    if (hostedZone === undefined) {
-      zone = HostedZone.fromLookup(this, "HostedZone", {
-        domainName: domain,
-      });
-    } else {
-      zone = hostedZone;
-    }
+    let domainName = null;
+    if (!noHostedZone) {
+      let zone: IHostedZone;
+      if (hostedZone === undefined) {
+        zone = HostedZone.fromLookup(this, "HostedZone", {
+          domainName: domain,
+        });
+      } else {
+        zone = hostedZone;
+      }
 
-    const url = `${subDomain ?? "htsget"}.${domain}`;
-    let certificate: ICertificate;
-    if (certificateArn !== undefined) {
-      certificate = Certificate.fromCertificateArn(
-        this,
-        "Certificate",
-        certificateArn,
-      );
-    } else {
-      certificate = new Certificate(this, "Certificate", {
+      const url = `${subDomain ?? "htsget"}.${domain}`;
+      let certificate: ICertificate;
+      if (certificateArn !== undefined) {
+        certificate = Certificate.fromCertificateArn(
+          this,
+          "Certificate",
+          certificateArn,
+        );
+      } else {
+        certificate = new Certificate(this, "Certificate", {
+          domainName: url,
+          validation: CertificateValidation.fromDns(hostedZone),
+          certificateName: url,
+        });
+      }
+
+      domainName = new DomainName(this, "DomainName", {
+        certificate: certificate,
         domainName: url,
-        validation: CertificateValidation.fromDns(hostedZone),
-        certificateName: url,
+      });
+
+      new ARecord(this, "ARecord", {
+        zone,
+        recordName: subDomain ?? "htsget",
+        target: RecordTarget.fromAlias(
+          new ApiGatewayv2DomainProperties(
+            domainName.regionalDomainName,
+            domainName.regionalHostedZoneId,
+          ),
+        ),
       });
     }
-
-    const domainName = new DomainName(this, "DomainName", {
-      certificate: certificate,
-      domainName: url,
-    });
-
-    new ARecord(this, "ARecord", {
-      zone,
-      recordName: subDomain ?? "htsget",
-      target: RecordTarget.fromAlias(
-        new ApiGatewayv2DomainProperties(
-          domainName.regionalDomainName,
-          domainName.regionalHostedZoneId,
-        ),
-      ),
-    });
 
     return new HttpApi(this, "HtsGetApiGateway", {
       defaultAuthorizer: authorizer,
-      defaultDomainMapping: {
-        domainName: domainName,
-      },
+      ...(domainName && {
+        defaultDomainMapping: {
+          domainName,
+        },
+      }),
       corsPreflight: {
         allowCredentials: config?.allowCredentials ?? false,
         allowHeaders: config?.allowHeaders ?? ["*"],
