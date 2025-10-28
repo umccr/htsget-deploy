@@ -92,7 +92,7 @@ export class HtsgetLambda extends Construct {
 
     let lambdaRole: Role | undefined;
     if (props.role == undefined) {
-      lambdaRole = HtsgetLambda.createRole(this, id);
+      lambdaRole = HtsgetLambda.createRole(this, id, props.roleName);
     }
 
     props.buildEnvironment ??= {};
@@ -101,6 +101,7 @@ export class HtsgetLambda extends Construct {
       gitRemote: "https://github.com/umccr/htsget-rs",
       gitForceClone: props.gitForceClone,
       gitReference: props.gitReference,
+      functionName: props.functionName,
       binaryName: "htsget-lambda",
       bundling: {
         environment: {
@@ -125,7 +126,10 @@ export class HtsgetLambda extends Construct {
     let privateKey: Secret | undefined = undefined;
     let publicKey: Secret | undefined = undefined;
     if (props.copyTestData) {
-      [bucket, privateKey, publicKey] = this.setupTestData();
+      [bucket, privateKey, publicKey] = this.setupTestData(
+        props.gitReference,
+        props.bucketName,
+      );
     }
 
     if (lambdaRole !== undefined) {
@@ -213,7 +217,10 @@ export class HtsgetLambda extends Construct {
   /**
    * Create a bucket and copy test data if configured.
    */
-  private setupTestData(gitReference?: string): [Bucket, Secret, Secret] {
+  private setupTestData(
+    gitReference?: string,
+    bucketName?: string,
+  ): [Bucket, Secret, Secret] {
     const gitRemote = "https://github.com/umccr/htsget-rs";
     const latestCommit = exec("git", [
       "ls-remote",
@@ -229,6 +236,7 @@ export class HtsgetLambda extends Construct {
       encryption: BucketEncryption.S3_MANAGED,
       enforceSSL: true,
       removalPolicy: RemovalPolicy.RETAIN,
+      bucketName,
     });
 
     // Copy data from upstream htsget repo
@@ -266,7 +274,7 @@ export class HtsgetLambda extends Construct {
   /**
    * Set permissions for the Lambda role.
    */
-  static setPermissions(
+  public static setPermissions(
     role: Role,
     config: HtsgetConfig,
     bucket?: Bucket,
@@ -336,10 +344,11 @@ export class HtsgetLambda extends Construct {
   /**
    * Creates a lambda role with the configured permissions.
    */
-  static createRole(scope: Construct, id: string): Role {
+  public static createRole(scope: Construct, id: string, roleName?: string): Role {
     return new Role(scope, "Role", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       description: "Lambda execution role for " + id,
+      roleName,
     });
   }
 
@@ -414,7 +423,7 @@ export class HtsgetLambda extends Construct {
       ),
     });
 
-    return new HttpApi(this, "ApiGateway", {
+    return new HttpApi(this, "HtsGetApiGateway", {
       defaultAuthorizer: authorizer,
       defaultDomainMapping: {
         domainName: domainName,
@@ -433,7 +442,7 @@ export class HtsgetLambda extends Construct {
   /**
    * Convert JSON config to htsget-rs env representation.
    */
-  static configToEnv(
+  public static configToEnv(
     config: HtsgetConfig,
     corsConfig?: CorsConifg,
     bucket?: Bucket,
@@ -481,7 +490,6 @@ export class HtsgetLambda extends Construct {
     ) {
       locationsEnv = undefined;
     }
-    console.log(JSON.stringify(locationsEnv, null, 2));
 
     out.HTSGET_LOCATIONS = locationsEnv;
     out.HTSGET_TICKET_SERVER_CORS_ALLOW_CREDENTIALS =
