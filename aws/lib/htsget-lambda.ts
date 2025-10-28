@@ -23,6 +23,7 @@ import { Architecture } from "aws-cdk-lib/aws-lambda";
 import {
   Certificate,
   CertificateValidation,
+  ICertificate,
 } from "aws-cdk-lib/aws-certificatemanager";
 import {
   ARecord,
@@ -85,12 +86,13 @@ export class HtsgetLambda extends Construct {
         props.cors,
         props.subDomain,
         props.hostedZone,
+        props.certificateArn,
       );
     }
 
     let lambdaRole: Role | undefined;
     if (props.role == undefined) {
-      lambdaRole = this.createRole(id);
+      lambdaRole = HtsgetLambda.createRole(this, id);
     }
 
     props.buildEnvironment ??= {};
@@ -109,7 +111,7 @@ export class HtsgetLambda extends Construct {
           ...props.buildEnvironment,
         },
         cargoLambdaFlags: props.cargoLambdaFlags ?? [
-          this.resolveFeatures(props.htsgetConfig, props.copyTestData ?? false),
+          HtsgetLambda.resolveFeatures(props.htsgetConfig, props.copyTestData ?? false),
         ],
       },
       memorySize: 128,
@@ -127,7 +129,7 @@ export class HtsgetLambda extends Construct {
     }
 
     if (lambdaRole !== undefined) {
-      this.setPermissions(
+      HtsgetLambda.setPermissions(
         lambdaRole,
         props.htsgetConfig,
         bucket,
@@ -136,7 +138,7 @@ export class HtsgetLambda extends Construct {
       );
     }
 
-    const env = this.configToEnv(
+    const env = HtsgetLambda.configToEnv(
       props.htsgetConfig,
       props.cors,
       bucket,
@@ -172,7 +174,7 @@ export class HtsgetLambda extends Construct {
   /**
    * Determine the correct features based on the locations.
    */
-  private resolveFeatures(config: HtsgetConfig, bucketSetup: boolean): string {
+  public static resolveFeatures(config: HtsgetConfig, bucketSetup: boolean): string {
     const features = [];
 
     if (
@@ -264,7 +266,7 @@ export class HtsgetLambda extends Construct {
   /**
    * Set permissions for the Lambda role.
    */
-  private setPermissions(
+  static setPermissions(
     role: Role,
     config: HtsgetConfig,
     bucket?: Bucket,
@@ -334,8 +336,8 @@ export class HtsgetLambda extends Construct {
   /**
    * Creates a lambda role with the configured permissions.
    */
-  private createRole(id: string): Role {
-    return new Role(this, "Role", {
+  static createRole(scope: Construct, id: string): Role {
+    return new Role(scope, "Role", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       description: "Lambda execution role for " + id,
     });
@@ -350,6 +352,7 @@ export class HtsgetLambda extends Construct {
     config?: CorsConifg,
     subDomain?: string,
     hostedZone?: IHostedZone,
+    certificateArn?: string,
   ): HttpApi {
     // Add an authorizer if auth is required.
     let authorizer: HttpJwtAuthorizer | undefined = undefined;
@@ -380,11 +383,20 @@ export class HtsgetLambda extends Construct {
     }
 
     const url = `${subDomain ?? "htsget"}.${domain}`;
-    const certificate = new Certificate(this, "Certificate", {
-      domainName: url,
-      validation: CertificateValidation.fromDns(hostedZone),
-      certificateName: url,
-    });
+    let certificate: ICertificate;
+    if (certificateArn !== undefined) {
+      certificate = Certificate.fromCertificateArn(
+        this,
+        "Certificate",
+        certificateArn,
+      );
+    } else {
+      certificate = new Certificate(this, "Certificate", {
+        domainName: url,
+        validation: CertificateValidation.fromDns(hostedZone),
+        certificateName: url,
+      });
+    }
 
     const domainName = new DomainName(this, "DomainName", {
       certificate: certificate,
@@ -421,7 +433,7 @@ export class HtsgetLambda extends Construct {
   /**
    * Convert JSON config to htsget-rs env representation.
    */
-  private configToEnv(
+  static configToEnv(
     config: HtsgetConfig,
     corsConfig?: CorsConifg,
     bucket?: Bucket,
@@ -445,7 +457,7 @@ export class HtsgetLambda extends Construct {
       });
     }
 
-    let locationsEnv = locations
+    let locationsEnv: string | undefined = locations
       .map((location) => {
         return toHtsgetEnv({
           location: location.location,
@@ -467,10 +479,9 @@ export class HtsgetLambda extends Construct {
       (config.environment_override === undefined ||
         config.environment_override.HTSGET_LOCATIONS === undefined)
     ) {
-      throw new Error(
-        "no locations configured, htsget-rs wouldn't be able to access any files!",
-      );
+      locationsEnv = undefined;
     }
+    console.log(JSON.stringify(locationsEnv, null, 2));
 
     out.HTSGET_LOCATIONS = locationsEnv;
     out.HTSGET_TICKET_SERVER_CORS_ALLOW_CREDENTIALS =

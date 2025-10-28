@@ -117,6 +117,7 @@ export interface HtsgetLambdaProps {
    * @defaultValue undefined
    */
   buildEnvironment?: Record<string, string>;
+  certificateArn?: string;
 }
 
 /**
