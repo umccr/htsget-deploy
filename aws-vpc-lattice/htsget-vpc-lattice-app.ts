@@ -13,12 +13,19 @@ new HtsgetVpcLatticeStack(
     destinationAccounts: ["534840902377"],
     htsgetConfig: {
       environment_override: {
-        HTSGET_LOCATIONS:
-          "[{regex=.*, substitution_string=$0/$0.hard-filtered, backend={ kind=S3, bucket=umccr-10g-data-dev }} ]",
+          HTSGET_LOCATIONS: '[]',
+          HTSGET_DATA_SERVER: 'None',
+          HTSGET_AUTH_AUTHORIZATION_URL: `https://elsa-data.dev.umccr.org/api/integration/htsget-rs`,
+          HTSGET_AUTH_FORWARD_ENDPOINT_TYPE: true,
+          HTSGET_AUTH_FORWARD_ID: true,
+          HTSGET_AUTH_SUPPRESS_ERRORS: true,
+          HTSGET_AUTH_ADD_HINT: true,
+          HTSGET_AUTH_FORWARD_EXTENSIONS: `[{ json_path=$.requestContext.identity.sourceVpcArn, name=SourceVpcArn }]`,
+          AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH: true,
       },
     },
     build: {
-      gitReference: "feature/aws-vpc-lattice-support",
+      gitReference: "main",
       gitForceClone: true,
     },
     naming: {

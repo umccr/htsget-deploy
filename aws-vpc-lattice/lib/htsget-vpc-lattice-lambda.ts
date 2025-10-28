@@ -3,14 +3,11 @@ import { CfnOutput, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import {
   ManagedPolicy,
-  PolicyStatement,
   Role,
   ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
 import { RustFunction } from "cargo-lambda-cdk";
-import { Bucket } from "aws-cdk-lib/aws-s3";
 import {
-  HtsgetConfig,
   HtsgetVpcLatticeLambdaProps,
 } from "./htsget-vpc-lattice-lambda-props";
 import { IVpc, SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
@@ -18,6 +15,7 @@ import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import * as vpclattice from "aws-cdk-lib/aws-vpclattice";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as ram from "aws-cdk-lib/aws-ram";
+import { HtsgetLambda } from "htsget-lambda";
 
 /**
  * @ignore
@@ -63,7 +61,7 @@ export class HtsgetVpcLatticeLambda extends Construct {
           ...props.build.buildEnvironment,
         },
         cargoLambdaFlags: props.build.cargoLambdaFlags ?? [
-          this.resolveFeatures(props.htsgetConfig, false),
+          HtsgetLambda.resolveFeatures(props.htsgetConfig, false),
         ],
       },
       memorySize: 128,
@@ -74,10 +72,10 @@ export class HtsgetVpcLatticeLambda extends Construct {
     });
 
     if (lambdaRole !== undefined) {
-      this.setPermissions(lambdaRole, props.htsgetConfig, undefined);
+      HtsgetLambda.setPermissions(lambdaRole, props.htsgetConfig, undefined);
     }
 
-    const env = this.configToEnv(props.htsgetConfig, undefined);
+    const env = HtsgetLambda.configToEnv(props.htsgetConfig, undefined);
     for (const key in env) {
       htsgetLambda.addEnvironment(key, env[key]);
     }
@@ -278,67 +276,6 @@ export class HtsgetVpcLatticeLambda extends Construct {
   }
 
   /**
-   * Determine the correct features based on the locations.
-   */
-  private resolveFeatures(config: HtsgetConfig, bucketSetup: boolean): string {
-    const features = [];
-
-    if (
-      config.locations?.some((location) =>
-        location.location.startsWith("s3://"),
-      ) ||
-      bucketSetup
-    ) {
-      features.push("aws");
-    }
-    if (
-      config.locations?.some(
-        (location) =>
-          location.location.startsWith("http://") ||
-          location.location.startsWith("https://"),
-      )
-    ) {
-      features.push("url");
-    }
-
-    return features.length === 0
-      ? "--all-features"
-      : `--features ${features.join(",")}`;
-  }
-
-  /**
-   * Set permissions for the Lambda role.
-   */
-  private setPermissions(role: Role, config: HtsgetConfig, bucket?: Bucket) {
-    role.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName(
-        "service-role/AWSLambdaBasicExecutionRole",
-      ),
-    );
-
-    const locations = config.locations ?? [];
-    // Add any "s3://" locations to policy.
-    const buckets = locations.flatMap((location) => {
-      if (location.location.startsWith("s3://")) {
-        return [location.location.split("/")[2]];
-      } else {
-        return [];
-      }
-    });
-    if (bucket !== undefined) {
-      buckets.push(bucket.bucketName);
-    }
-
-    const bucketPolicy = new PolicyStatement({
-      actions: ["s3:GetObject"],
-      resources: buckets.map((bucket) => `arn:aws:s3:::${bucket}/*`),
-    });
-    if (bucketPolicy.resources.length !== 0) {
-      role.addToPolicy(bucketPolicy);
-    }
-  }
-
-  /**
    * Creates a lambda role with the configured permissions.
    */
   private createRole(id: string): Role {
@@ -352,72 +289,6 @@ export class HtsgetVpcLatticeLambda extends Construct {
         ManagedPolicy.fromAwsManagedPolicyName("AmazonS3ReadOnlyAccess"),
       ],
     });
-  }
-
-  /**
-   * Convert JSON config to htsget-rs env representation.
-   */
-  private configToEnv(
-    config: HtsgetConfig,
-    bucket?: Bucket,
-  ): Record<string, string> {
-    const toHtsgetEnv = (value: unknown) => {
-      return JSON.stringify(value)
-        .replaceAll(new RegExp(/"( )*:( )*/g), "=")
-        .replaceAll('"', "");
-    };
-
-    const out: Record<string, string | undefined> = {};
-    const locations = config.locations ?? [];
-
-    if (bucket !== undefined) {
-      locations.push({
-        location: `s3://${bucket.bucketName}`,
-      });
-    }
-
-    let locationsEnv = locations
-      .map((location) => {
-        return toHtsgetEnv({
-          location: location.location,
-        });
-      })
-      .join(",");
-    locationsEnv = `[${locationsEnv}]`;
-
-    if (
-      locationsEnv == "[]" &&
-      (config.environment_override === undefined ||
-        config.environment_override.HTSGET_LOCATIONS === undefined)
-    ) {
-      throw new Error(
-        "no locations configured, htsget-rs wouldn't be able to access any files!",
-      );
-    }
-
-    out.HTSGET_LOCATIONS = locationsEnv;
-    //out.HTSGET_TICKET_SERVER_CORS_ALLOW_CREDENTIALS = true.toString();
-    //out.HTSGET_TICKET_SERVER_CORS_ALLOW_HEADERS = `All`;
-    //out.HTSGET_TICKET_SERVER_CORS_ALLOW_ORIGINS = `Mirror`;
-    //out.HTSGET_TICKET_SERVER_CORS_ALLOW_METHODS = `[*]`;
-    //out.HTSGET_TICKET_SERVER_CORS_EXPOSE_HEADERS = `[*]`;
-    //out.HTSGET_TICKET_SERVER_CORS_MAX_AGE = "30";
-
-    for (const key in config.service_info) {
-      out[`HTSGET_SERVICE_INFO_${key.toUpperCase()}`] = toHtsgetEnv(
-        config.service_info[key],
-      );
-    }
-    for (const key in config.environment_override) {
-      out[key] = toHtsgetEnv(config.environment_override[key]);
-    }
-
-    Object.keys(out).forEach(
-      (key) =>
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        (out[key] == `[undefined]` || out[key] == "[]") && delete out[key],
-    );
-    return out as Record<string, string>;
   }
 
   /**

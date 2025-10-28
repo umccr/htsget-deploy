@@ -1,5 +1,6 @@
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import { IRole } from "aws-cdk-lib/aws-iam";
+import { HtsgetConfig } from "htsget-lambda/lib/config";
 
 /**
  * Settings related to the htsget lambda construct props.
@@ -85,47 +86,4 @@ export interface HtsgetVpcLatticeLambdaProps {
    * A list of AWS account ids that the VPC Lattice service will be shared to using RAM.
    */
   destinationAccounts: string[];
-}
-
-/**
- * Configuration for the htsget-rs server. This allows specifying the options
- * available in the htsget-rs config: https://github.com/umccr/htsget-rs/tree/main/htsget-config
- */
-export interface HtsgetConfig {
-  /**
-   * The locations for the htsget-rs server. This is the same as the htsget-rs config locations:
-   * https://github.com/umccr/htsget-rs/tree/main/htsget-config#quickstart
-   *
-   * Any `s3://...` locations will automatically be added to the bucket access policy.
-   *
-   * @defaultValue []
-   */
-  locations?: HtsgetLocation[];
-
-  /**
-   * Service info fields to configure for the server. This is the same as the htsget-rs config service_info:
-   * https://github.com/umccr/htsget-rs/tree/main/htsget-config#service-info-config
-   *
-   * @defaultValue undefined
-   */
-  service_info?: Record<string, unknown>;
-
-  /**
-   * Any additional htsget-rs options can be specified here as environment variables. These will override
-   * any options set in this construct, and allows using advanced configuration. Options here should contain
-   * the `HTSGET_` prefix.
-   *
-   * @defaultValue undefined
-   */
-  environment_override?: Record<string, unknown>;
-}
-
-/**
- * Config for locations.
- */
-export interface HtsgetLocation {
-  /**
-   * The location string.
-   */
-  location: string;
 }
