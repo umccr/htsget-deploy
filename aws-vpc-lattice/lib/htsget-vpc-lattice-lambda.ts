@@ -1,15 +1,9 @@
 import { Architecture } from "aws-cdk-lib/aws-lambda";
 import { CfnOutput, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import {
-  ManagedPolicy,
-  Role,
-  ServicePrincipal,
-} from "aws-cdk-lib/aws-iam";
+import { ManagedPolicy, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
 import { RustFunction } from "cargo-lambda-cdk";
-import {
-  HtsgetVpcLatticeLambdaProps,
-} from "./htsget-vpc-lattice-lambda-props";
+import { HtsgetVpcLatticeLambdaProps } from "./htsget-vpc-lattice-lambda-props";
 import { IVpc, SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import * as vpclattice from "aws-cdk-lib/aws-vpclattice";

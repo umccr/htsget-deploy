@@ -37,8 +37,8 @@ importers:
         specifier: ^24.5.1
         version: 24.5.1
       aws-cdk:
-        specifier: ^2.1029.1
-        version: 2.1029.1
+        specifier: ^2.1031.0
+        version: 2.1031.0
       aws-cdk-lib:
         specifier: ^2.112.0
         version: 2.215.0(constructs@10.4.2)
@@ -51,6 +51,34 @@ importers:
       typedoc-plugin-markdown:
         specifier: ^4.8.1
         version: 4.8.1(typedoc@0.28.13(typescript@5.9.2))
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
+  aws-vpc-lattice:
+    dependencies:
+      cargo-lambda-cdk:
+        specifier: 0.0.33
+        version: 0.0.33(aws-cdk-lib@2.215.0(constructs@10.4.2))(constructs@10.4.2)
+      htsget-lambda:
+        specifier: link:../aws
+        version: link:../aws
+    devDependencies:
+      '@types/node':
+        specifier: ^24.5.1
+        version: 24.5.1
+      aws-cdk:
+        specifier: ^2.1031.0
+        version: 2.1031.0
+      aws-cdk-lib:
+        specifier: ^2.112.0
+        version: 2.215.0(constructs@10.4.2)
+      constructs:
+        specifier: 10.4.2
+        version: 10.4.2
+      prettier:
+        specifier: 3.6.2
+        version: 3.6.2
       typescript:
         specifier: 5.9.2
         version: 5.9.2
@@ -635,8 +663,8 @@ packages:
       - yaml
       - mime-types
 
-  aws-cdk@2.1029.1:
-    resolution: {integrity: sha512-etMnV7xwm1pBKOXl5zZKtNRt7ZIMocEe+GrZHVVp6oHsXqpPDi7iyPm7HR3CV1xe9yFjs3hZiHDebg+ONpccuw==}
+  aws-cdk@2.1031.0:
+    resolution: {integrity: sha512-iotbdOIvHoLCz1u7PUVDQbcpGpVqMk8HzAeOP4PGRqD9PoAEsCb3mwGTxHMrNGEGWdJXQxiTOGSaMmlwEvACxA==}
     engines: {node: '>= 18.0.0'}
     hasBin: true
 
@@ -1648,7 +1676,7 @@ snapshots:
       '@aws-cdk/cloud-assembly-schema': 48.9.0
       constructs: 10.4.2
 
-  aws-cdk@2.1029.1:
+  aws-cdk@2.1031.0:
     optionalDependencies:
       fsevents: 2.3.2
 

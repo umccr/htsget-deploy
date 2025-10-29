@@ -112,7 +112,10 @@ export class HtsgetLambda extends Construct {
           ...props.buildEnvironment,
         },
         cargoLambdaFlags: props.cargoLambdaFlags ?? [
-          HtsgetLambda.resolveFeatures(props.htsgetConfig, props.copyTestData ?? false),
+          HtsgetLambda.resolveFeatures(
+            props.htsgetConfig,
+            props.copyTestData ?? false,
+          ),
         ],
       },
       memorySize: 128,
@@ -178,7 +181,10 @@ export class HtsgetLambda extends Construct {
   /**
    * Determine the correct features based on the locations.
    */
-  public static resolveFeatures(config: HtsgetConfig, bucketSetup: boolean): string {
+  public static resolveFeatures(
+    config: HtsgetConfig,
+    bucketSetup: boolean,
+  ): string {
     const features = [];
 
     if (
@@ -344,7 +350,11 @@ export class HtsgetLambda extends Construct {
   /**
    * Creates a lambda role with the configured permissions.
    */
-  public static createRole(scope: Construct, id: string, roleName?: string): Role {
+  public static createRole(
+    scope: Construct,
+    id: string,
+    roleName?: string,
+  ): Role {
     return new Role(scope, "Role", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       description: "Lambda execution role for " + id,

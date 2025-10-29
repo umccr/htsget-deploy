@@ -6,13 +6,12 @@ Code features it has:
 
 1. Construction of VPC Lattice artifacts
 2. Deployment of htsget-rs as a Lambda Target Group
-3. Use of `bun` for CDK.
 
 To deploy:
 
 1. Authenticate to your AWS account (preferably using SSO).
 2. Modify the [`htsget-vpc-lattice-app.ts`][htsget-vpc-lattice-app], according to your preferences.
-3. Run `bunx cdk deploy`.
+3. Run `pnpm cdk deploy`.
 
 ### Does it work?
 
@@ -57,12 +56,4 @@ Should return a response similar to the following:
     "tagsParametersEffective": false
   }
 }
-```
-
-## Local development
-
-This project uses bun.
-
-```sh
-bun install
 ```
