@@ -1,5 +1,5 @@
 {
-  "app": "bun htsget-vpc-lattice-app.ts",
+  "app": "npx ts-node --prefer-ts-exts htsget-vpc-lattice-app.ts",
   "context": {
     "@aws-cdk-containers/ecs-service-extensions:enableDefaultLogDriver": true,
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
