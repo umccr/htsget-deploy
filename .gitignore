@@ -7,5 +7,4 @@ cdk.out
 *.d.ts
 *.js
 dist
-.dev.vars
-.wrangler
+.idea/

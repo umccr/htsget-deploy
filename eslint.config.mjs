@@ -1,16 +1,18 @@
-import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
+import esLint from "@eslint/js";
+import tsEsLint from "typescript-eslint";
 
-export default tseslint.config(
-  eslint.configs.recommended,
-  tseslint.configs.strictTypeChecked,
-  tseslint.configs.stylisticTypeChecked,
+export default tsEsLint.config(
+  esLint.configs.recommended,
+  tsEsLint.configs.strictTypeChecked,
+  tsEsLint.configs.stylisticTypeChecked,
   {
     languageOptions: {
+      ecmaVersion: 2020,
       parserOptions: {
         projectService: {
           allowDefaultProject: ["*.js", "*.mjs"],
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         tsconfigRootDir: import.meta.dirname,
       },
     },
