@@ -16,10 +16,5 @@ jobs:
         with:
           node-version: 24
           cache: "pnpm"
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          command: types
-          workingDirectory: "cloudflare"
-          wranglerVersion: 4.28.1
       - run: pnpm install
       - run: pnpm run build
