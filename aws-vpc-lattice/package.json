@@ -1,5 +1,5 @@
 {
-  "name": "htsget-lambda",
+  "name": "@umccr/htsget-vpc-lattice",
   "version": "0.9.4",
   "dependencies": {
     "cargo-lambda-cdk": "0.0.33",
