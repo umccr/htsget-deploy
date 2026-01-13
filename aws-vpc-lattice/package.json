@@ -22,5 +22,9 @@
     "prettier": "prettier",
     "run": "cdk deploy",
     "watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/umccr/htsget-deploy"
   }
 }
