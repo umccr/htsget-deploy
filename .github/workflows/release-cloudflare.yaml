@@ -4,6 +4,9 @@ on:
   release:
     types: [released]
 
+permissions:
+  id-token: write
+
 jobs:
   release:
     if: ${{ startsWith(github.event.release.tag_name, 'htsget-workers') }}
@@ -22,5 +25,3 @@ jobs:
         working-directory: cloudflare
       - run: pnpm publish --access public --no-git-checks
         working-directory: cloudflare
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.HTSGET_RS_DEPLOY_PUBLISH_TOKEN }}
