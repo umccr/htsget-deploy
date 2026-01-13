@@ -26,5 +26,5 @@
   "dependencies": {
     "cargo-lambda-cdk": "^0.0.33"
   },
-  "version": "0.9.4"
+  "version": "0.9.6"
 }
