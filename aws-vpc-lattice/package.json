@@ -2,19 +2,19 @@
   "name": "@umccr/htsget-vpc-lattice",
   "version": "0.9.6",
   "dependencies": {
-    "cargo-lambda-cdk": "0.0.33",
+    "cargo-lambda-cdk": "0.0.36",
     "htsget-lambda": "link:../aws"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.112.0"
   },
   "devDependencies": {
-    "@types/node": "^24.5.1",
-    "aws-cdk": "^2.1031.0",
-    "aws-cdk-lib": "^2.112.0",
-    "constructs": "10.4.2",
-    "prettier": "3.6.2",
-    "typescript": "5.9.2"
+    "@types/node": "^24.10.7",
+    "aws-cdk": "^2.1100.3",
+    "aws-cdk-lib": "^2.234.1",
+    "constructs": "10.4.4",
+    "prettier": "3.7.4",
+    "typescript": "5.9.3"
   },
   "scripts": {
     "build": "tsc",
