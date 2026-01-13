@@ -495,8 +495,7 @@ export class HtsgetLambda extends Construct {
 
     if (
       locationsEnv == "[]" &&
-      (config.environment_override === undefined ||
-        config.environment_override.HTSGET_LOCATIONS === undefined)
+      config.environment_override?.HTSGET_LOCATIONS === undefined
     ) {
       locationsEnv = undefined;
     }
