@@ -3,12 +3,12 @@
     "htsget_app": "bin/htsget-lambda.js"
   },
   "devDependencies": {
-    "@types/node": "^24.5.1",
-    "aws-cdk": "^2.1031.0",
-    "aws-cdk-lib": "^2.112.0",
+    "@types/node": "^24.10.7",
+    "aws-cdk": "^2.1100.3",
+    "aws-cdk-lib": "^2.234.1",
     "constructs": "10.4.2",
-    "typedoc": "^0.28.13",
-    "typedoc-plugin-markdown": "^4.8.1",
+    "typedoc": "^0.28.16",
+    "typedoc-plugin-markdown": "^4.9.0",
     "typescript": "5.9.2"
   },
   "name": "@umccr/htsget-lambda",
