@@ -15,7 +15,7 @@ interface EnvWithCustomVariables extends Env {
 }
 
 export class MyContainer extends Container<EnvWithCustomVariables> {
-  constructor(ctx: DurableObjectState, env: EnvWithCustomVariables) {
+  constructor(ctx: DurableObjectState<object>, env: EnvWithCustomVariables) {
     super(ctx, env);
 
     // Port the container listens on (default: 8080)
