@@ -25,5 +25,3 @@ jobs:
         working-directory: aws
       - run: pnpm publish --access public --no-git-checks
         working-directory: aws
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.HTSGET_RS_DEPLOY_PUBLISH_TOKEN }}
