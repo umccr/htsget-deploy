@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "@cloudflare/containers": "^0.0.31",
-    "hono": "4.11.4"
+    "@cloudflare/containers": "^0.1.0",
+    "hono": "^4.12.2"
   },
   "cloudflare": {
     "label": "Containers Starter",
@@ -11,9 +11,9 @@
     ]
   },
   "devDependencies": {
-    "@types/node": "^24.10.7",
-    "typescript": "5.9.3",
-    "wrangler": "^4.58.0"
+    "@types/node": "^24.10.13",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.68.1"
   },
   "name": "@umccr/htsget-workers",
   "scripts": {
