@@ -146,6 +146,13 @@ export interface HtsgetLambdaProps {
    * @defaultValue undefined
    */
   buildEnvironment?: Record<string, string>;
+
+  /**
+   * Specify the runtime for the deployed htsget Lambda function.
+   *
+   * @defaultValue uses provided.al2023
+   */
+  runtime?: "provided.al2023" | "provided.al2";
 }
 
 /**
