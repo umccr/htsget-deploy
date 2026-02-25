@@ -63,6 +63,7 @@ export class HtsgetVpcLatticeLambda extends Construct {
       architecture: Architecture.ARM_64,
       role: lambdaRole ?? props.role,
       vpc: vpc,
+      runtime: props.build.runtime,
     });
 
     if (lambdaRole !== undefined) {

@@ -123,6 +123,7 @@ export class HtsgetLambda extends Construct {
       architecture: Architecture.ARM_64,
       role: lambdaRole ?? props.role,
       vpc: props.vpc,
+      runtime: props.runtime,
     });
 
     let bucket: Bucket | undefined = undefined;
