@@ -153,6 +153,20 @@ export interface HtsgetLambdaProps {
    * @defaultValue uses provided.al2023
    */
   runtime?: "provided.al2023" | "provided.al2";
+
+  /**
+   * Deploy a pre-built htsget-lambda artifact instead of compiling htsget-rs from source.
+   *
+   * Set this to the path of a directory containing the `bootstrap` binary, or to a `bootstrap.zip`,
+   * produced by `cargo lambda build --release --arm64` (see the htsget-rs release workflow). This is
+   * intended for CI/CD pipelines that build the binary once and deploy the immutable artifact.
+   *
+   * When set, the source-build options (`gitReference`, `gitForceClone`, `cargoLambdaFlags`,
+   * `buildEnvironment`) are ignored.
+   *
+   * @defaultValue undefined, builds htsget-rs from source with cargo-lambda
+   */
+  lambdaCodePath?: string;
 }
 
 /**

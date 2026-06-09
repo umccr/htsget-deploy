@@ -19,7 +19,7 @@ import {
   Role,
   ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
-import { Architecture } from "aws-cdk-lib/aws-lambda";
+import { Architecture, Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import {
   Certificate,
   CertificateValidation,
@@ -95,36 +95,7 @@ export class HtsgetLambda extends Construct {
       lambdaRole = HtsgetLambda.createRole(this, id, props.roleName);
     }
 
-    props.buildEnvironment ??= {};
-
-    const htsgetLambda = new RustFunction(this, "Function", {
-      gitRemote: "https://github.com/umccr/htsget-rs",
-      gitForceClone: props.gitForceClone,
-      gitReference: props.gitReference,
-      functionName: props.functionName,
-      binaryName: "htsget-lambda",
-      bundling: {
-        environment: {
-          RUSTFLAGS: "-C target-cpu=neoverse-n1",
-          CARGO_PROFILE_RELEASE_LTO: "true",
-          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
-          AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH: "true",
-          ...props.buildEnvironment,
-        },
-        cargoLambdaFlags: props.cargoLambdaFlags ?? [
-          HtsgetLambda.resolveFeatures(
-            props.htsgetConfig,
-            props.copyTestData ?? false,
-          ),
-        ],
-      },
-      memorySize: 128,
-      timeout: Duration.seconds(28),
-      architecture: Architecture.ARM_64,
-      role: lambdaRole ?? props.role,
-      vpc: props.vpc,
-      runtime: props.runtime,
-    });
+    const htsgetLambda = this.createFunction(props, lambdaRole);
 
     let bucket: Bucket | undefined = undefined;
     let privateKey: Secret | undefined = undefined;
@@ -177,6 +148,67 @@ export class HtsgetLambda extends Construct {
         "This will create an instance of htsget-rs that is public! Anyone will be able to query the server without authorization.",
       );
     }
+  }
+
+  /**
+   * Create the htsget Lambda function, either from a pre-built artifact (`lambdaCodePath`)
+   * or by compiling htsget-rs from source with cargo-lambda.
+   */
+  private createFunction(
+    props: HtsgetLambdaProps,
+    lambdaRole?: Role,
+  ): Function {
+    const role = lambdaRole ?? props.role;
+
+    // Deploy a pre-built artifact instead of compiling htsget-rs from source. Intended for
+    // CI/CD pipelines that build the binary once and deploy the immutable `bootstrap.zip`.
+    if (props.lambdaCodePath !== undefined) {
+      return new Function(this, "Function", {
+        functionName: props.functionName,
+        runtime:
+          props.runtime === "provided.al2"
+            ? Runtime.PROVIDED_AL2
+            : Runtime.PROVIDED_AL2023,
+        handler: "bootstrap",
+        code: Code.fromAsset(props.lambdaCodePath),
+        architecture: Architecture.ARM_64,
+        memorySize: 128,
+        timeout: Duration.seconds(28),
+        role,
+        vpc: props.vpc,
+      });
+    }
+
+    props.buildEnvironment ??= {};
+
+    return new RustFunction(this, "Function", {
+      gitRemote: "https://github.com/umccr/htsget-rs",
+      gitForceClone: props.gitForceClone,
+      gitReference: props.gitReference,
+      functionName: props.functionName,
+      binaryName: "htsget-lambda",
+      bundling: {
+        environment: {
+          RUSTFLAGS: "-C target-cpu=neoverse-n1",
+          CARGO_PROFILE_RELEASE_LTO: "true",
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
+          AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH: "true",
+          ...props.buildEnvironment,
+        },
+        cargoLambdaFlags: props.cargoLambdaFlags ?? [
+          HtsgetLambda.resolveFeatures(
+            props.htsgetConfig ?? { locations: [] },
+            props.copyTestData ?? false,
+          ),
+        ],
+      },
+      memorySize: 128,
+      timeout: Duration.seconds(28),
+      architecture: Architecture.ARM_64,
+      role,
+      vpc: props.vpc,
+      runtime: props.runtime,
+    });
   }
 
   /**
@@ -479,16 +511,20 @@ export class HtsgetLambda extends Construct {
 
     let locationsEnv: string | undefined = locations
       .map((location) => {
+        if (
+          location.private_key === undefined ||
+          location.public_key === undefined
+        ) {
+          return location.location;
+        }
+
         return toHtsgetEnv({
           location: location.location,
-          ...(location.private_key !== undefined &&
-            location.public_key !== undefined && {
-              keys: {
-                kind: "SecretsManager",
-                private: location.private_key,
-                public: location.public_key,
-              },
-            }),
+          keys: {
+            kind: "SecretsManager",
+            private: location.private_key,
+            public: location.public_key,
+          },
         });
       })
       .join(",");
