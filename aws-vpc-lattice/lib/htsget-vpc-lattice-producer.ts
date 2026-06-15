@@ -8,7 +8,7 @@ import {
   ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
 import { RustFunction } from "cargo-lambda-cdk";
-import { HtsgetVpcLatticeLambdaProps } from "./htsget-vpc-lattice-lambda-props";
+import { HtsgetVpcLatticeProducerProps } from "./htsget-vpc-lattice-props";
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import {
   ARecord,
@@ -31,7 +31,7 @@ import { resolveVpc } from "./vpc";
  * htsget-rs deployment. This should be paired with the `HtsgetVpcLatticeConsumer` which
  * associates a consumer VPC with the lattice share.
  */
-export class HtsgetVpcLatticeLambda extends Construct {
+export class HtsgetVpcLatticeProducer extends Construct {
   /**
    * The VPC Lattice service network which is shared to destination accounts.
    */
@@ -45,7 +45,7 @@ export class HtsgetVpcLatticeLambda extends Construct {
   constructor(
     scope: Construct,
     id: string,
-    props: HtsgetVpcLatticeLambdaProps,
+    props: HtsgetVpcLatticeProducerProps,
   ) {
     super(scope, id);
 
@@ -208,7 +208,7 @@ export class HtsgetVpcLatticeLambda extends Construct {
    * Create the htsget Lambda function, either from a pre-built artifact or by compiling from source.
    */
   private createFunction(
-    props: HtsgetVpcLatticeLambdaProps,
+    props: HtsgetVpcLatticeProducerProps,
     vpc?: IVpc,
     lambdaRole?: Role,
   ): Function {

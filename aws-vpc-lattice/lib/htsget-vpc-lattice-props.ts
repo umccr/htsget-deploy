@@ -6,7 +6,7 @@ import { HtsgetConfig } from "@umccr/htsget-lambda";
 /**
  * Settings related to the htsget VPC Lattice lambda construct props.
  */
-export interface HtsgetVpcLatticeLambdaProps {
+export interface HtsgetVpcLatticeProducerProps {
   /**
    * The htsget-rs config options. Use this to specify any locations and htsget-rs options.
    *
@@ -147,4 +147,41 @@ export interface HtsgetVpcLatticeLambdaProps {
    * @defaultValue "htsget-service-network"
    */
   shareName?: string;
+}
+
+/**
+ * Settings for the htsget VPC Lattice consumer construct.
+ */
+export interface HtsgetVpcLatticeConsumerProps {
+  /**
+   * The ARN of the VPC Lattice network shared from the provider account. This is
+   * the `ServiceNetworkArn` output of the provider stack.
+   */
+  serviceNetworkArn: string;
+
+  /**
+   * The VPC or VPC name to associate with the shared network. This VPC is used to
+   * reach the htsget deployment from the producer.
+   */
+  vpcOrName: string | IVpc;
+
+  /**
+   * Security group ids to apply to the VPC association.
+   *
+   * @defaultValue undefined, allows all VPC traffic
+   */
+  securityGroupIds?: string[];
+
+  /**
+   * Deploy a test Lambda function inside the VPC that calls the htsget service that can be used
+   * to verify that everything is working.
+   *
+   * @defaultValue undefined, no test function is deployed
+   */
+  deployTestLambda?: {
+    /**
+     * The host name of the htsget service, e.g. `htsget.example.com`.
+     */
+    endpoint: string;
+  };
 }
