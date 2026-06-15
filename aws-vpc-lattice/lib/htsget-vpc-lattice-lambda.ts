@@ -1,21 +1,47 @@
-import { Architecture } from "aws-cdk-lib/aws-lambda";
+import { Architecture, Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { CfnOutput, Duration } from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { ManagedPolicy, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import {
+  IManagedPolicy,
+  ManagedPolicy,
+  Role,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
 import { RustFunction } from "cargo-lambda-cdk";
 import { HtsgetVpcLatticeLambdaProps } from "./htsget-vpc-lattice-lambda-props";
-import { IVpc, SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
-import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { IVpc } from "aws-cdk-lib/aws-ec2";
+import {
+  ARecord,
+  HostedZone,
+  IHostedZone,
+  RecordTarget,
+} from "aws-cdk-lib/aws-route53";
+import {
+  Certificate,
+  CertificateValidation,
+} from "aws-cdk-lib/aws-certificatemanager";
 import * as vpclattice from "aws-cdk-lib/aws-vpclattice";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as ram from "aws-cdk-lib/aws-ram";
-import { HtsgetLambda } from "htsget-lambda";
+import { HtsgetLambda } from "@umccr/htsget-lambda";
+import { resolveVpc } from "./vpc";
 
 /**
- * @ignore
- * Construct used to deploy htsget-lambda as a VPC Lattice endpoint.
+ * Construct used to deploy htsget-lambda as a VPC Lattice service. This is the provider
+ * construct, which sets up the sharing in the data-holding account. It holds the actual
+ * htsget-rs deployment. This should be paired with the `HtsgetVpcLatticeConsumer` which
+ * associates a consumer VPC with the lattice share.
  */
 export class HtsgetVpcLatticeLambda extends Construct {
+  /**
+   * The VPC Lattice service network which is shared to destination accounts.
+   */
+  readonly serviceNetwork: vpclattice.CfnServiceNetwork;
+
+  /**
+   * The VPC Lattice service htsget-lambda function.
+   */
+  readonly service: vpclattice.CfnService;
+
   constructor(
     scope: Construct,
     id: string,
@@ -24,11 +50,10 @@ export class HtsgetVpcLatticeLambda extends Construct {
     super(scope, id);
 
     // we can be passed in an IVpc or the name of a VPC that we will lookup
-    const vpc: IVpc = this.isIVpc(props.vpcOrName)
-      ? props.vpcOrName
-      : Vpc.fromLookup(this, "Vpc", {
-          vpcName: props.vpcOrName,
-        });
+    const vpc: IVpc | undefined =
+      props.vpcOrName === undefined
+        ? undefined
+        : resolveVpc(this, "Vpc", props.vpcOrName);
 
     props.htsgetConfig ??= {
       locations: [],
@@ -36,35 +61,14 @@ export class HtsgetVpcLatticeLambda extends Construct {
 
     let lambdaRole: Role | undefined;
     if (props.role == undefined) {
-      lambdaRole = this.createRole(id);
+      lambdaRole = this.createRole(
+        id,
+        vpc !== undefined,
+        props.broadS3Read ?? false,
+      );
     }
 
-    props.build.buildEnvironment ??= {};
-
-    const htsgetLambda = new RustFunction(this, "Function", {
-      gitRemote: "https://github.com/umccr/htsget-rs",
-      gitForceClone: props.build.gitForceClone,
-      gitReference: props.build.gitReference,
-      binaryName: "htsget-lambda",
-      bundling: {
-        environment: {
-          RUSTFLAGS: "-C target-cpu=neoverse-n1",
-          CARGO_PROFILE_RELEASE_LTO: "true",
-          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
-          AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH: "true",
-          ...props.build.buildEnvironment,
-        },
-        cargoLambdaFlags: props.build.cargoLambdaFlags ?? [
-          HtsgetLambda.resolveFeatures(props.htsgetConfig, false),
-        ],
-      },
-      memorySize: 128,
-      timeout: Duration.seconds(28),
-      architecture: Architecture.ARM_64,
-      role: lambdaRole ?? props.role,
-      vpc: vpc,
-      runtime: props.build.runtime,
-    });
+    const htsgetLambda = this.createFunction(props, vpc, lambdaRole);
 
     if (lambdaRole !== undefined) {
       HtsgetLambda.setPermissions(lambdaRole, props.htsgetConfig, undefined);
@@ -78,21 +82,36 @@ export class HtsgetVpcLatticeLambda extends Construct {
     // logs are going to cloudwatch so no point in having formatting - so send as json
     htsgetLambda.addEnvironment("HTSGET_FORMATTING_STYLE", "Json");
 
-    //guard.allow_reference_names = ["chr1"]
+    const url = `${props.naming.subDomain}.${props.naming.domain}`;
+    const zone: IHostedZone =
+      props.hostedZone ??
+      HostedZone.fromLookup(this, "HostedZone", {
+        domainName: props.naming.domain,
+      });
 
-    const serviceNetwork = new vpclattice.CfnServiceNetwork(
+    const certificateArn =
+      props.naming.certificateArn ??
+      new Certificate(this, "Certificate", {
+        domainName: url,
+        validation: CertificateValidation.fromDns(zone),
+        certificateName: url,
+      }).certificateArn;
+
+    this.serviceNetwork = new vpclattice.CfnServiceNetwork(
       this,
       "HtsgetServiceNetwork",
       {
+        // Named explicitly so consumer accounts can discover the shared network ARN.
+        name: props.serviceNetworkName ?? "htsget-service-network",
         // htsget lambda itself will do the auth
         authType: "NONE",
       },
     );
 
-    const service = new vpclattice.CfnService(this, "LatticeService", {
+    this.service = new vpclattice.CfnService(this, "LatticeService", {
       authType: "NONE",
-      customDomainName: `${props.naming.subDomain}.${props.naming.domain}`,
-      certificateArn: props.naming.certificateArn,
+      customDomainName: url,
+      certificateArn,
     });
 
     const targetGroup = new vpclattice.CfnTargetGroup(
@@ -112,7 +131,7 @@ export class HtsgetVpcLatticeLambda extends Construct {
     );
 
     new vpclattice.CfnListener(this, "HtsgetListener", {
-      serviceIdentifier: service.attrArn,
+      serviceIdentifier: this.service.attrArn,
       port: 443,
       protocol: "HTTPS",
       defaultAction: {
@@ -126,19 +145,22 @@ export class HtsgetVpcLatticeLambda extends Construct {
       this,
       "ServiceNetworkAssociation",
       {
-        serviceIdentifier: service.attrId,
-        serviceNetworkIdentifier: serviceNetwork.attrId,
+        serviceIdentifier: this.service.attrId,
+        serviceNetworkIdentifier: this.serviceNetwork.attrId,
       },
     );
 
-    new vpclattice.CfnServiceNetworkVpcAssociation(this, "VpcAssociation", {
-      serviceNetworkIdentifier: serviceNetwork.attrId,
-      vpcIdentifier: vpc.vpcId,
-    });
+    // Associate the provider's own VPC so the service can also be called locally.
+    if (vpc !== undefined) {
+      new vpclattice.CfnServiceNetworkVpcAssociation(this, "VpcAssociation", {
+        serviceNetworkIdentifier: this.serviceNetwork.attrId,
+        vpcIdentifier: vpc.vpcId,
+      });
+    }
 
     new ram.CfnResourceShare(this, "VpcServiceShare", {
-      name: "htsget-service-network",
-      resourceArns: [serviceNetwork.attrArn],
+      name: props.shareName ?? "htsget-service-network",
+      resourceArns: [this.serviceNetwork.attrArn],
       principals: props.destinationAccounts,
     });
 
@@ -148,119 +170,31 @@ export class HtsgetVpcLatticeLambda extends Construct {
       sourceArn: targetGroup.attrArn,
     });
 
-    new lambda.Function(this, "TestLambda", {
-      runtime: lambda.Runtime.NODEJS_22_X,
-      handler: "index.handler",
-      vpc: vpc,
-      vpcSubnets: {
-        subnetType: SubnetType.PRIVATE_ISOLATED,
-      },
-      environment: {
-        LATTICE_SERVICE_DNS: service.attrDnsEntryDomainName,
-        LATTICE_SERVICE_ID: service.attrId,
-        LATTICE_SERVICE: `${props.naming.subDomain}.${props.naming.domain}`,
-      },
-      code: lambda.Code.fromInline(`
-        const https = require('https');
-
-        exports.handler = async (event) => {
-          console.log('Test Lambda invoked');
-
-          try {
-            const latticeHost = process.env.LATTICE_SERVICE;
-            const path = '/variants/HG00096';
-
-            console.log('Calling VPC Lattice service:', \`https://\${latticeHost}\${path}\`);
-
-            const options = {
-              hostname: latticeHost,
-              port: 443,
-              path: path,
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            };
-
-            const response = await new Promise((resolve, reject) => {
-              const req = https.request(options, (res) => {
-                let data = '';
-                res.on('data', chunk => data += chunk);
-                res.on('end', () => resolve({
-                  statusCode: res.statusCode,
-                  body: data,
-                  headers: res.headers
-                }));
-              });
-
-              req.on('error', (error) => {
-                console.error('HTTPS request error:', error);
-                reject(error);
-              });
-
-              req.setTimeout(10000, () => {
-                req.destroy();
-                reject(new Error('Request timeout'));
-              });
-
-              req.end();
-            });
-
-            console.log('VPC Lattice response:', response);
-
-            return {
-              statusCode: 200,
-              body: JSON.stringify({
-                message: 'Successfully called VPC Lattice service',
-                latticeResponse: {
-                  statusCode: response.statusCode,
-                  body: JSON.parse(response.body),
-                  timestamp: new Date().toISOString()
-                }
-              })
-            };
-
-          } catch (error) {
-            console.error('Error calling VPC Lattice:', error);
-            return {
-              statusCode: 500,
-              body: JSON.stringify({
-                error: 'Failed to call VPC Lattice service',
-                message: error.message,
-                stack: error.stack
-              })
-            };
-          }
-        };
-      `),
-      description: "Test Lambda to call VPC Lattice service-info endpoint",
-      timeout: Duration.seconds(30),
-    });
-
-    // find the HostedZone corresponding to the domain we are deployed into
-    const zone = HostedZone.fromLookup(this, "HostedZone", {
-      domainName: props.naming.domain,
-    });
-
     // make an A record pointing at the underlying lattice endpoint
     new ARecord(this, "ServiceARecord", {
       zone: zone,
       recordName: props.naming.subDomain,
       target: RecordTarget.fromAlias({
         bind: () => ({
-          dnsName: service.attrDnsEntryDomainName,
-          hostedZoneId: service.attrDnsEntryHostedZoneId,
+          dnsName: this.service.attrDnsEntryDomainName,
+          hostedZoneId: this.service.attrDnsEntryHostedZoneId,
         }),
       }),
     });
 
     new CfnOutput(this, "ServiceNetworkId", {
-      value: serviceNetwork.attrId,
+      value: this.serviceNetwork.attrId,
       description: "VPC Lattice Service Network ID",
     });
 
+    // consumer accounts need the ARN to associate their VPC.
+    new CfnOutput(this, "ServiceNetworkArn", {
+      value: this.serviceNetwork.attrArn,
+      description: "VPC Lattice Service Network ARN",
+    });
+
     new CfnOutput(this, "ServiceId", {
-      value: service.attrId,
+      value: this.service.attrId,
       description: "VPC Lattice Service ID",
     });
 
@@ -271,36 +205,86 @@ export class HtsgetVpcLatticeLambda extends Construct {
   }
 
   /**
-   * Creates a lambda role with the configured permissions.
+   * Create the htsget Lambda function, either from a pre-built artifact or by compiling from source.
    */
-  private createRole(id: string): Role {
-    return new Role(this, "Role", {
-      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-      description: "Lambda execution role for " + id,
-      managedPolicies: [
-        ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AWSLambdaVPCAccessExecutionRole",
-        ),
-        ManagedPolicy.fromAwsManagedPolicyName("AmazonS3ReadOnlyAccess"),
-      ],
+  private createFunction(
+    props: HtsgetVpcLatticeLambdaProps,
+    vpc?: IVpc,
+    lambdaRole?: Role,
+  ): Function {
+    const role = lambdaRole ?? props.role;
+
+    // Deploy a pre-built artifact instead of compiling htsget-rs from source.
+    if (props.lambdaCodePath !== undefined) {
+      return new Function(this, "Function", {
+        functionName: props.functionName,
+        runtime:
+          props.build?.runtime === "provided.al2"
+            ? Runtime.PROVIDED_AL2
+            : Runtime.PROVIDED_AL2023,
+        handler: "bootstrap",
+        code: Code.fromAsset(props.lambdaCodePath),
+        architecture: Architecture.ARM_64,
+        memorySize: 128,
+        timeout: Duration.seconds(28),
+        role,
+        vpc,
+      });
+    }
+
+    return new RustFunction(this, "Function", {
+      gitRemote: "https://github.com/umccr/htsget-rs",
+      gitForceClone: props.build?.gitForceClone,
+      gitReference: props.build?.gitReference,
+      functionName: props.functionName,
+      binaryName: "htsget-lambda",
+      bundling: {
+        environment: {
+          RUSTFLAGS: "-C target-cpu=neoverse-n1",
+          CARGO_PROFILE_RELEASE_LTO: "true",
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
+          AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH: "true",
+          ...props.build?.buildEnvironment,
+        },
+        cargoLambdaFlags: props.build?.cargoLambdaFlags ?? [
+          HtsgetLambda.resolveFeatures(
+            props.htsgetConfig ?? { locations: [] },
+            false,
+          ),
+        ],
+      },
+      memorySize: 128,
+      timeout: Duration.seconds(28),
+      architecture: Architecture.ARM_64,
+      role,
+      vpc,
+      runtime: props.build?.runtime,
     });
   }
 
   /**
-   * Identify whether the passed in object is (probably) a IVpc.
-   *
-   * @param obj
-   * @private
-   * @remarks this is just used as a light check between being passed in a string v a VPC object
-   *          it is not meant to be some sort of definitional test for VPCs
+   * Creates a lambda role with the configured permissions.
    */
-  /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access */
-  private isIVpc(obj: any): obj is IVpc {
-    return (
-      obj &&
-      typeof obj.vpcId === "string" &&
-      typeof obj.vpcCidrBlock === "string"
-    );
+  private createRole(id: string, inVpc: boolean, broadS3Read: boolean): Role {
+    const managedPolicies: IManagedPolicy[] = [];
+    // Broad S3 read is only needed when locations are supplied dynamically.
+    if (broadS3Read) {
+      managedPolicies.push(
+        ManagedPolicy.fromAwsManagedPolicyName("AmazonS3ReadOnlyAccess"),
+      );
+    }
+    if (inVpc) {
+      managedPolicies.push(
+        ManagedPolicy.fromAwsManagedPolicyName(
+          "service-role/AWSLambdaVPCAccessExecutionRole",
+        ),
+      );
+    }
+
+    return new Role(this, "Role", {
+      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+      description: "Lambda execution role for " + id,
+      managedPolicies,
+    });
   }
-  /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access */
 }
