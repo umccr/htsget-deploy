@@ -1,9 +1,10 @@
 import { IVpc } from "aws-cdk-lib/aws-ec2";
 import { IRole } from "aws-cdk-lib/aws-iam";
-import { HtsgetConfig } from "htsget-lambda/lib/config";
+import { IHostedZone } from "aws-cdk-lib/aws-route53";
+import { HtsgetConfig } from "@umccr/htsget-lambda";
 
 /**
- * Settings related to the htsget lambda construct props.
+ * Settings related to the htsget VPC Lattice lambda construct props.
  */
 export interface HtsgetVpcLatticeLambdaProps {
   /**
@@ -13,7 +14,12 @@ export interface HtsgetVpcLatticeLambdaProps {
    */
   htsgetConfig?: HtsgetConfig;
 
-  build: {
+  /**
+   * Options for building htsget-rs. Ignored when `lambdaCodePath` is set.
+   *
+   * @defaultValue undefined
+   */
+  build?: {
     /**
      * The git reference to fetch from the htsget-rs repo.
      *
@@ -56,6 +62,20 @@ export interface HtsgetVpcLatticeLambdaProps {
   };
 
   /**
+   * Deploy a pre-built htsget-lambda artifact.
+   *
+   * @defaultValue undefined, builds from source
+   */
+  lambdaCodePath?: string;
+
+  /**
+   * The name of the Lambda function.
+   *
+   * @defaultValue undefined
+   */
+  functionName?: string;
+
+  /**
    * How to name the VPC Lattice service.
    */
   naming: {
@@ -71,15 +91,26 @@ export interface HtsgetVpcLatticeLambdaProps {
     subDomain: string;
 
     /**
-     * The certificate ARN for SSL corresponding to a wildcard or specific cert for the sub.domain
+     * The certificate ARN for SSL corresponding to a wildcard or specific cert for the sub.domain.
+     *
+     * @defaultValue undefined, creates a new certificate
      */
-    certificateArn: string;
+    certificateArn?: string;
   };
 
   /**
-   * Specify a VPC for the Lambda function, or specify the name of the VPC to lookup.
+   * Use the hosted zone instead of looking it up from the domain name.
+   *
+   * @defaultValue undefined, looks up the zone from `naming.domain`
    */
-  vpcOrName: string | IVpc;
+  hostedZone?: IHostedZone;
+
+  /**
+   * Specify the VPC or name to lookup for the Lambda function.
+   *
+   * @defaultValue undefined
+   */
+  vpcOrName?: string | IVpc;
 
   /**
    * Use the provided role instead of creating one. This will ignore any configuration related to permissions for
@@ -90,7 +121,30 @@ export interface HtsgetVpcLatticeLambdaProps {
   role?: IRole;
 
   /**
-   * A list of AWS account ids that the VPC Lattice service will be shared to using RAM.
+   * Attach `AmazonS3ReadOnlyAccess` to the role created by this construct. This is needed
+   * for dynamic locations that come in through `environment_override` or an authorization
+   * server.
+   *
+   * @defaultValue false
+   */
+  broadS3Read?: boolean;
+
+  /**
+   * A list of AWS account ids that the VPC Lattice service network will be shared to using RAM.
    */
   destinationAccounts: string[];
+
+  /**
+   * The name of the VPC Lattice service network.
+   *
+   * @defaultValue "htsget-service-network"
+   */
+  serviceNetworkName?: string;
+
+  /**
+   * The name of the RAM resource share.
+   *
+   * @defaultValue "htsget-service-network"
+   */
+  shareName?: string;
 }
