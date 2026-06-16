@@ -60,7 +60,7 @@ by `cargo lambda build --release --arm64`:
 
 ```ts
 new HtsgetLambda(this, "HtsgetLambda", {
-  domain: "dev.umccr.org",
+  domain: "example.com",
   lambdaCodePath: "path/to/bootstrap", // skips the source build
 });
 ```
