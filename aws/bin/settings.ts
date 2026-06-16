@@ -1,13 +1,13 @@
 import { HtsgetLambdaProps } from "../index";
 
 /**
- * Settings to use for the htsget deployment.
+ * Example settings for a public htsget deployment.
  */
 export const SETTINGS: HtsgetLambdaProps = {
-  domain: "dev.umccr.org",
+  domain: "example.com",
   copyTestData: true,
-  gitReference: "htsget-lambda-v0.7.4",
-  bucketName: "htsget-data",
+  gitReference: "main",
+  bucketName: "data-bucket",
   functionName: "htsget-function",
   roleName: "htsget-role",
 };
