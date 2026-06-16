@@ -226,7 +226,7 @@ export class HtsgetVpcLatticeProducer extends Construct {
         code: Code.fromAsset(props.lambdaCodePath),
         architecture: Architecture.ARM_64,
         memorySize: 128,
-        timeout: Duration.seconds(28),
+        timeout: Duration.seconds(300),
         role,
         vpc,
       });
@@ -243,7 +243,7 @@ export class HtsgetVpcLatticeProducer extends Construct {
           RUSTFLAGS: "-C target-cpu=neoverse-n1",
           CARGO_PROFILE_RELEASE_LTO: "true",
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "1",
-          AWS_LAMBDA_HTTP_IGNORE_STAGE_IN_PATH: "true",
+          CARGO_PROFILE_RELEASE_STRIP: "symbols",
           ...props.build?.buildEnvironment,
         },
         cargoLambdaFlags: props.build?.cargoLambdaFlags ?? [
@@ -254,7 +254,7 @@ export class HtsgetVpcLatticeProducer extends Construct {
         ],
       },
       memorySize: 128,
-      timeout: Duration.seconds(28),
+      timeout: Duration.seconds(300),
       architecture: Architecture.ARM_64,
       role,
       vpc,
