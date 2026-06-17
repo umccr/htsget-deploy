@@ -60,7 +60,7 @@ new HtsgetVpcLatticeProducerStack(app, producerStackId, PRODUCER_SETTINGS, {
 });
 
 const consumerStackId = "HtsgetVpcLatticeConsumerStack";
-const serviceNetworkArn = process.env.HTSGET_SERVICE_NETWORK_ARN ?? undefined;
+const serviceNetworkArn = process.env.HTSGET_SERVICE_NETWORK_ARN;
 if (serviceNetworkArn !== undefined) {
   new HtsgetVpcLatticeConsumerStack(
     app,
