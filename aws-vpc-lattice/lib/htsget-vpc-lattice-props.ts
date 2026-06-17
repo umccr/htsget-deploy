@@ -99,11 +99,12 @@ export interface HtsgetVpcLatticeProducerProps {
   };
 
   /**
-   * Use the hosted zone instead of looking it up from the domain name.
+   * Use the hosted zone instead of looking it up from the domain name. Pass an `IHostedZone` to use
+   * it directly, or a hosted zone id string to build the zone from that id.
    *
    * @defaultValue undefined, looks up the zone from `naming.domain`
    */
-  hostedZone?: IHostedZone;
+  hostedZoneOrId?: string | IHostedZone;
 
   /**
    * Specify the VPC or name to lookup for the Lambda function.

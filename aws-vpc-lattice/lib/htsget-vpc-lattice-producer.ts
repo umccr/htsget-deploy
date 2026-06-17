@@ -83,11 +83,19 @@ export class HtsgetVpcLatticeProducer extends Construct {
     htsgetLambda.addEnvironment("HTSGET_FORMATTING_STYLE", "Json");
 
     const url = `${props.naming.subDomain}.${props.naming.domain}`;
-    const zone: IHostedZone =
-      props.hostedZone ??
-      HostedZone.fromLookup(this, "HostedZone", {
+    let zone: IHostedZone;
+    if (typeof props.hostedZoneOrId === "string") {
+      zone = HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
+        hostedZoneId: props.hostedZoneOrId,
+        zoneName: props.naming.domain,
+      });
+    } else if (props.hostedZoneOrId !== undefined) {
+      zone = props.hostedZoneOrId;
+    } else {
+      zone = HostedZone.fromLookup(this, "HostedZone", {
         domainName: props.naming.domain,
       });
+    }
 
     const certificateArn =
       props.naming.certificateArn ??

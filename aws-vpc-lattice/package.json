@@ -20,6 +20,8 @@
     "aws-cdk-lib": "^2.240.0",
     "constructs": "^10.5.1",
     "prettier": "^3.8.1",
+    "typedoc": "^0.28.17",
+    "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "^5.9.3"
   },
   "scripts": {
@@ -27,7 +29,8 @@
     "cdk": "cdk",
     "prettier": "prettier",
     "run": "cdk deploy",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "typedoc": "typedoc --gitRevision main --plugin typedoc-plugin-markdown"
   },
   "repository": {
     "type": "git",

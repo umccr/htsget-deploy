@@ -116,11 +116,12 @@ export interface HtsgetLambdaProps {
   certificateArn?: string;
 
   /**
-   * Use the provided hosted zone instead of looking it up from the domain name.
+   * Use the hosted zone instead of looking it up from the domain name. Pass an `IHostedZone` to use
+   * it directly, or a hosted zone id string to build the zone from that id.
    *
    * @defaultValue undefined
    */
-  hostedZone?: IHostedZone;
+  hostedZoneOrId?: string | IHostedZone;
 
   /**
    * Use the provided role instead of creating one. This will ignore any configuration related to permissions for

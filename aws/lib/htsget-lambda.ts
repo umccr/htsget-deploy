@@ -61,7 +61,6 @@ import {
 import { exec } from "cargo-lambda-cdk/lib/util";
 
 /**
- * @ignore
  * Construct used to deploy htsget-lambda.
  */
 export class HtsgetLambda extends Construct {
@@ -85,7 +84,7 @@ export class HtsgetLambda extends Construct {
         props.jwt,
         props.cors,
         props.subDomain,
-        props.hostedZone,
+        props.hostedZoneOrId,
         props.certificateArn,
       );
     }
@@ -403,7 +402,7 @@ export class HtsgetLambda extends Construct {
     jwtAuthorizer?: JwtConfig,
     config?: CorsConifg,
     subDomain?: string,
-    hostedZone?: IHostedZone,
+    hostedZoneOrId?: string | IHostedZone,
     certificateArn?: string,
   ): HttpApi {
     // Add an authorizer if auth is required.
@@ -426,12 +425,17 @@ export class HtsgetLambda extends Construct {
     }
 
     let zone: IHostedZone;
-    if (hostedZone === undefined) {
+    if (typeof hostedZoneOrId === "string") {
+      zone = HostedZone.fromHostedZoneAttributes(this, "HostedZone", {
+        hostedZoneId: hostedZoneOrId,
+        zoneName: domain,
+      });
+    } else if (hostedZoneOrId !== undefined) {
+      zone = hostedZoneOrId;
+    } else {
       zone = HostedZone.fromLookup(this, "HostedZone", {
         domainName: domain,
       });
-    } else {
-      zone = hostedZone;
     }
 
     const url = `${subDomain ?? "htsget"}.${domain}`;
@@ -445,7 +449,7 @@ export class HtsgetLambda extends Construct {
     } else {
       certificate = new Certificate(this, "Certificate", {
         domainName: url,
-        validation: CertificateValidation.fromDns(hostedZone),
+        validation: CertificateValidation.fromDns(zone),
         certificateName: url,
       });
     }
