@@ -18,14 +18,16 @@ export class HtsgetStack extends cdk.Stack {
 }
 
 const app = new cdk.App();
-new HtsgetStack(app, "HtsgetLambdaStack", SETTINGS, {
-  stackName: "HtsgetLambdaStack",
+
+const env = {
+  account: process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEFAULT_REGION,
+};
+
+const stackId = "HtsgetLambdaStack";
+new HtsgetStack(app, stackId, SETTINGS, {
+  stackName: stackId,
   description: "A stack deploying htsget-rs with API gateway.",
-  tags: {
-    Stack: "HtsgetLambdaStack",
-  },
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
-  },
+  tags: { Stack: stackId },
+  env,
 });

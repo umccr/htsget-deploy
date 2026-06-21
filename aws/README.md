@@ -49,6 +49,26 @@ Should return a response similar to the following:
 
 Please note that the example above assumes a publicly accessible endpoint. If you have an authz'd deployment, please add `-H "Authorization: $JWT_TOKEN"` flags to your `curl` command.
 
+## Deploying a pre-built artifact
+
+By default the construct compiles htsget-rs from source with [cargo-lambda] at synth time, cloning the
+`gitReference` from the htsget-rs repo. For CI/CD pipelines it is usually preferable to build the binary
+once and deploy the resulting immutable artifact to every environment.
+
+Set `lambdaCodePath` to a directory containing the `bootstrap` binary (or to a `bootstrap.zip`) produced
+by `cargo lambda build --release --arm64`:
+
+```ts
+new HtsgetLambda(this, "HtsgetLambda", {
+  domain: "example.com",
+  lambdaCodePath: "path/to/bootstrap", // skips the source build
+});
+```
+
+When `lambdaCodePath` is set, the source-build options (`gitReference`, `gitForceClone`,
+`cargoLambdaFlags`, `buildEnvironment`) are ignored. The [htsget-pipeline] repo uses this to deploy the
+artifact published by the htsget-rs release workflow.
+
 ## Library
 
 The `HtsgetConstruct` is [published][htsget-npm] as an NPM package so that it can be used as construct in other projects.
@@ -72,6 +92,7 @@ npx typedoc
 [htsget-settings]: bin/settings.ts
 [cargo-lambda]: https://github.com/cargo-lambda/cargo-lambda
 [htsget-rs]: https://github.com/umccr/htsget-rs
+[htsget-pipeline]: https://github.com/umccr/htsget-pipeline
 [aws-cdk]: https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html
 [cdk-context]: https://docs.aws.amazon.com/cdk/v2/guide/context.html
 [cdk-lookup-value]: https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_ssm.StringParameter.html#static-valuewbrfromwbrlookupscope-parametername

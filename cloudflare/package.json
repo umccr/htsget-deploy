@@ -16,6 +16,7 @@
     "wrangler": "^4.68.1"
   },
   "name": "@umccr/htsget-workers",
+  "private": true,
   "scripts": {
     "build": "wrangler types && tsc",
     "cdk": "cdk",

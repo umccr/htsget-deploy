@@ -116,11 +116,12 @@ export interface HtsgetLambdaProps {
   certificateArn?: string;
 
   /**
-   * Use the provided hosted zone instead of looking it up from the domain name.
+   * Use the hosted zone instead of looking it up from the domain name. Pass an `IHostedZone` to use
+   * it directly, or a hosted zone id string to build the zone from that id.
    *
    * @defaultValue undefined
    */
-  hostedZone?: IHostedZone;
+  hostedZoneOrId?: string | IHostedZone;
 
   /**
    * Use the provided role instead of creating one. This will ignore any configuration related to permissions for
@@ -153,6 +154,20 @@ export interface HtsgetLambdaProps {
    * @defaultValue uses provided.al2023
    */
   runtime?: "provided.al2023" | "provided.al2";
+
+  /**
+   * Deploy a pre-built htsget-lambda artifact instead of compiling htsget-rs from source.
+   *
+   * Set this to the path of a directory containing the `bootstrap` binary, or to a `bootstrap.zip`,
+   * produced by `cargo lambda build --release --arm64` (see the htsget-rs release workflow). This is
+   * intended for CI/CD pipelines that build the binary once and deploy the immutable artifact.
+   *
+   * When set, the source-build options (`gitReference`, `gitForceClone`, `cargoLambdaFlags`,
+   * `buildEnvironment`) are ignored.
+   *
+   * @defaultValue undefined, builds htsget-rs from source with cargo-lambda
+   */
+  lambdaCodePath?: string;
 }
 
 /**

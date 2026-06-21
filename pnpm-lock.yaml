@@ -61,12 +61,12 @@ importers:
 
   aws-vpc-lattice:
     dependencies:
+      '@umccr/htsget-lambda':
+        specifier: workspace:^
+        version: link:../aws
       cargo-lambda-cdk:
         specifier: 0.0.36
         version: 0.0.36(aws-cdk-lib@2.240.0(constructs@10.5.1))(constructs@10.5.1)
-      htsget-lambda:
-        specifier: link:../aws
-        version: link:../aws
     devDependencies:
       '@types/node':
         specifier: ^24.10.13
@@ -83,6 +83,12 @@ importers:
       prettier:
         specifier: ^3.8.1
         version: 3.8.1
+      typedoc:
+        specifier: ^0.28.17
+        version: 0.28.17(typescript@5.9.3)
+      typedoc-plugin-markdown:
+        specifier: ^4.10.0
+        version: 4.10.0(typedoc@0.28.17(typescript@5.9.3))
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   release:
-    if: ${{ startsWith(github.event.release.tag_name, 'htsget-workers') }}
+    if: ${{ startsWith(github.event.release.tag_name, 'htsget-vpc-lattice') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,8 +20,8 @@ jobs:
           cache: "pnpm"
           registry-url: "https://registry.npmjs.org"
       - run: pnpm install
-        working-directory: cloudflare
+        working-directory: aws-vpc-lattice
       - run: pnpm run build
-        working-directory: cloudflare
+        working-directory: aws-vpc-lattice
       - run: pnpm publish --access public --no-git-checks
-        working-directory: cloudflare
+        working-directory: aws-vpc-lattice
