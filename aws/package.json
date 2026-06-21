@@ -5,7 +5,7 @@
   "devDependencies": {
     "@types/node": "^24.10.13",
     "aws-cdk": "^2.1107.0",
-    "aws-cdk-lib": "^2.240.0",
+    "aws-cdk-lib": "^2.246.0",
     "constructs": "^10.5.1",
     "typedoc": "^0.28.17",
     "typedoc-plugin-markdown": "^4.10.0",
