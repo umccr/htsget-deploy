@@ -23,9 +23,11 @@ export function resolveVpc(
   id: string,
   vpcOrName: string | IVpc,
 ): IVpc {
-  return isIVpc(vpcOrName)
-    ? vpcOrName
-    : Vpc.fromLookup(scope, id, {
-        vpcName: vpcOrName,
-      });
+  if (isIVpc(vpcOrName)) {
+    return vpcOrName;
+  } else {
+    return Vpc.fromLookup(scope, id, {
+      vpcName: vpcOrName,
+    });
+  }
 }
