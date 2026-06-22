@@ -5,12 +5,14 @@
     "aws": {
       "release-type": "node",
       "component": "htsget-lambda",
-      "package-name": "@umccr/htsget-lambda"
+      "package-name": "@umccr/htsget-lambda",
+      "initial-version": "0.1.0"
     },
     "aws-vpc-lattice": {
       "release-type": "node",
       "component": "htsget-vpc-lattice",
-      "package-name": "@umccr/htsget-vpc-lattice"
+      "package-name": "@umccr/htsget-vpc-lattice",
+      "initial-version": "0.1.0"
     }
   },
   "plugins": ["node-workspace"]
