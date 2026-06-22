@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/umccr/htsget-deploy/compare/htsget-vpc-lattice-v0.1.0...htsget-vpc-lattice-v0.1.1) (2026-06-22)
+
+
+### Bug Fixes
+
+* change if-else to re-publish ([b1433d1](https://github.com/umccr/htsget-deploy/commit/b1433d1ab27815e005d62bdc1f8db4d06a1b5379))
+* change if-else to re-publish ([84c83f3](https://github.com/umccr/htsget-deploy/commit/84c83f33200457befd73648ad5d481e820f37e5b))
+
 ## 0.1.0 (2026-06-22)
 
 
