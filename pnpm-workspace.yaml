@@ -4,9 +4,9 @@ packages:
   - cloudflare
 
 allowBuilds:
-  esbuild: set this to true or false
-  sharp: set this to true or false
-  workerd: set this to true or false
+  esbuild: false
+  sharp: false
+  workerd: false
 
 overrides:
   markdown-it@>=13.0.0 <14.1.1: ">=14.1.1"
