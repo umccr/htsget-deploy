@@ -7,15 +7,15 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.10.13",
-    "eslint": "^10.0.2",
-    "prettier": "^3.8.1",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1"
+    "eslint": "^10.5.0",
+    "prettier": "^3.8.4",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.1"
   },
   "files": [
     "./**/*.d.ts",
     "./**/*.js"
   ],
   "license": "MIT",
-  "packageManager": "pnpm@10.28.0"
+  "packageManager": "pnpm@11.8.0"
 }
