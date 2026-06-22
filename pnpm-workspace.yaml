@@ -3,6 +3,11 @@ packages:
   - aws-vpc-lattice
   - cloudflare
 
+allowBuilds:
+  esbuild: set this to true or false
+  sharp: set this to true or false
+  workerd: set this to true or false
+
 overrides:
   markdown-it@>=13.0.0 <14.1.1: ">=14.1.1"
   minimatch@>=9.0.0 <9.0.6: ">=9.0.6"
